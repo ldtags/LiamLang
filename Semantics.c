@@ -110,7 +110,26 @@ struct ExprRes * doMod(struct ExprRes * Res1, struct ExprRes * Res2) {
 
 struct ExprRes * doExp(struct ExprRes * Res1, struct ExprRes * Res2) {
 	int reg = AvailTmpReg();
-	
+	int index = AvailTmpReg();
+	char * loop = GenLabel();
+	char * done = GenLabel();
+
+	AppendSeq(Res1->Instrs, Res2->Instrs);
+	AppendSeq(Res1->Instrs, GenInstr(NULL, "li", TmpRegName(reg), "1", NULL));
+	AppendSeq(Res1->Instrs, GenInstr(NULL, "li", TmpRegName(index), "0", NULL));
+	AppendSeq(Res1->Instrs, GenInstr(loop, NULL, NULL, NULL, NULL));
+	AppendSeq(Res1->Instrs, GenInstr(NULL, "beq", TmpRegName(index), TmpRegName(Res2->Reg), done));
+	AppendSeq(Res1->Instrs, GenInstr(NULL, "mul", TmpRegName(reg), TmpRegName(reg), TmpRegName(Res1->Reg)));
+	AppendSeq(Res1->Instrs, GenInstr(NULL, "addi", TmpRegName(index), TmpRegName(index), "1"));
+	AppendSeq(Res1->Instrs, GenInstr(NULL, "j", loop, NULL, NULL));
+	AppendSeq(Res1->Instrs, GenInstr(done, NULL, NULL, NULL, NULL));
+
+	ReleaseTmpReg(index);
+	ReleaseTmpReg(Res1->Reg);
+	ReleaseTmpReg(Res2->Reg);
+	Res1->Reg = reg;
+	free(Res2);
+	return Res1;
 }
 
 struct ExprRes * doUMin(struct ExprRes * Res) {
