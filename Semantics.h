@@ -23,6 +23,7 @@ struct ExprResList {
 
 /* Semantics Actions */
 extern struct ExprRes   *  doIntLit(char * digits);
+extern struct ExprRes   *  doBoolLit(char * val);
 extern struct ExprRes   *  doRval(char * name);
 extern struct InstrSeq  *  doAssign(char * name,  struct ExprRes * Res1);
 extern struct ExprRes   *  doAdd(struct ExprRes * Res1,  struct ExprRes * Res2);
@@ -33,7 +34,9 @@ extern struct ExprRes   *  doMod(struct ExprRes * Res1, struct ExprRes * Res2);
 extern struct ExprRes   *  doExp(struct ExprRes * Res1, struct ExprRes * Res2);
 extern struct ExprRes   *  doUMin(struct ExprRes * Res);
 extern struct InstrSeq  *  doPrint(struct ExprRes * Expr);
-extern struct ExprRes   *  doEq (struct ExprRes * Res1,  struct ExprRes * Res2);
+extern struct ExprRes   *  doEq(struct ExprRes * Res1,  struct ExprRes * Res2);
+extern struct ExprRes   *  doAnd(struct ExprRes * Res1,  struct ExprRes * Res2);
+extern struct ExprRes   *  doOr(struct ExprRes * Res1,  struct ExprRes * Res2);
 extern struct InstrSeq  *  doIf(struct ExprRes *bRes, struct InstrSeq * seq);
 
 extern void	Finish(struct InstrSeq *Code);

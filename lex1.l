@@ -21,6 +21,8 @@ print					                {return Write;}
 {letter}({letter}|{digit})*	  {return Ident;}
 {digit}{digit}*		            {return IntLit;}
 \=\=					                {return EQ;}
+\|\|                          {return OR;}
+\&\&                          {return AND;}
 \=					                  {return '=';}
 \+					                  {return '+';}
 \-                            {return '-';}

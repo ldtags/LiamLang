@@ -43,6 +43,8 @@ extern SymTab *table;
 %token Write
 %token IF
 %token EQ	
+%token OR
+%token AND
 
 %%
 
@@ -56,6 +58,9 @@ Stmt			    :	Write Expr ';'								        { $$ = doPrint($2); };
 Stmt			    :	Id '=' Expr ';'								        { $$ = doAssign($1, $3); };
 Stmt			    :	IF '(' BExpr ')' '{' StmtSeq '}'	    { $$ = doIf($3, $6); };
 BExpr		      :	Expr EQ Expr								          { $$ = doEq($1, $3); };
+BExpr         : Expr AND Expr                         { $$ = doAnd($1, $3); };
+BExpr         : Expr OR Expr                          { $$ = doOr($1, $3); };
+BExpr         : BoolLit                               { $$ = doBoolLit($1, $3); };
 Expr			    :	Expr '+' Term								          { $$ = doAdd($1, $3); };
 Expr          : Expr '-' Term                         { $$ = doSub($1, $3); };
 Expr			    :	Term									                { $$ = $1; };

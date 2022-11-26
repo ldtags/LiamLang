@@ -195,7 +195,11 @@ struct InstrSeq * doAssign(char *name, struct ExprRes * Expr) {
   	return code;
 }
 
-extern struct ExprRes * doEq(struct ExprRes * Res1,  struct ExprRes * Res2) {
+struct ExprRes * doBoolLit(char * val) {
+
+}
+
+struct ExprRes * doEq(struct ExprRes * Res1,  struct ExprRes * Res2) {
 	struct ExprRes * Res;
     int reg = AvailTmpReg();
 	AppendSeq(Res1->Instrs, Res2->Instrs);
@@ -209,6 +213,14 @@ extern struct ExprRes * doEq(struct ExprRes * Res1,  struct ExprRes * Res2) {
 	free(Res1);
 	free(Res2);
 	return Res;
+}
+
+struct ExprRes * doAnd(struct ExprRes * Res1,  struct ExprRes * Res2) {
+
+}
+
+struct ExprRes * doOr(struct ExprRes * Res1,  struct ExprRes * Res2) {
+
 }
 
 extern struct InstrSeq * doIf(struct ExprRes * Res, struct InstrSeq * seq) {
