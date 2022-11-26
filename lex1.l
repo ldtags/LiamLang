@@ -16,6 +16,8 @@ digit [0-9]
 
 %%
 if					                  {return IF;}
+else                          {return ELSE;}
+while                         {return WHILE;}
 int					                  {return Int;}
 bool                          {return Bool;}
 print					                {return Write;}

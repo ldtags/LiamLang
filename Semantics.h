@@ -42,9 +42,12 @@ extern struct ExprRes   *  doLT(struct ExprRes * Res1, struct ExprRes * Res2);
 extern struct ExprRes   *  doLTE(struct ExprRes * Res1, struct ExprRes * Res2);
 extern struct ExprRes   *  doGT(struct ExprRes * Res1, struct ExprRes * Res2);
 extern struct ExprRes   *  doGTE(struct ExprRes * Res1, struct ExprRes * Res2);
+extern struct ExprRes   *  GEQ(struct ExprRes * Res1, struct ExprRes * Res2, char * OpCode)
 extern struct ExprRes   *  doAnd(struct ExprRes * Res1,  struct ExprRes * Res2);
 extern struct ExprRes   *  doOr(struct ExprRes * Res1,  struct ExprRes * Res2);
 extern struct ExprRes   *  doNot(struct ExprRes * Res);
 extern struct InstrSeq  *  doIf(struct ExprRes *bRes, struct InstrSeq * seq);
+extern struct InstrSeq  *  doElse(struct InstrSeq * seq);
+extern struct InstrSeq  *  doWhile(struct ExprRes * Res, struct InstrSeq * seq);
 
 extern void	Finish(struct InstrSeq *Code);
