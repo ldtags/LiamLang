@@ -11,6 +11,7 @@ extern int yylex();	/* The next token function. */
 extern char *yytext;   /* The matched token text.  */
 extern int yyleng;      /* The token text length.   */
 extern int yyparse();
+extern int yyerror(char* s);
 void dumpTable();
 
 extern SymTab *table;
