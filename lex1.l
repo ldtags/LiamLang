@@ -17,13 +17,22 @@ digit [0-9]
 %%
 if					                  {return IF;}
 int					                  {return Int;}
+bool                          {return Bool;}
 print					                {return Write;}
+true                          {return TRUE;}
+false                         {return FALSE;}
 {letter}({letter}|{digit})*	  {return Ident;}
 {digit}{digit}*		            {return IntLit;}
 \=\=					                {return EQ;}
+\!\=                          {return NEQ;}
 \|\|                          {return OR;}
 \&\&                          {return AND;}
+(\<\=)|(\=\<)                 {return LTE;}
+(\>\=)|(\=\>)                 {return GTE;}
 \=					                  {return '=';}
+\<                            {return '<';}
+\>                            {return '>';}
+\!                            {return '!';}
 \+					                  {return '+';}
 \-                            {return '-';}
 \*					                  {return '*';}

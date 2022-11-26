@@ -15,7 +15,7 @@ extern SymTab *table;
 
 /* Semantics support routines */
 
-struct ExprRes *  doIntLit(char * digits)  { 
+struct ExprRes * doIntLit(char * digits)  { 
 
    	struct ExprRes *res;
   
@@ -26,7 +26,14 @@ struct ExprRes *  doIntLit(char * digits)  {
   	return res;
 }
 
-struct ExprRes *  doRval(char * name)  { 
+struct ExprRes * doBoolLit(int val) {
+	struct ExprRes *Res = (struct ExprRes*) malloc(sizeof(struct ExprRes));
+	Res->Reg = AvailTmpReg();
+	Res->Instrs = GenInstr(NULL, "li", TmpRegName(Res->Reg), Imm(val), NULL);
+	return Res;
+}
+
+struct ExprRes * doRval(char * name)  { 
 
    	struct ExprRes *res;
   
@@ -41,7 +48,7 @@ struct ExprRes *  doRval(char * name)  {
   	return res;
 }
 
-struct ExprRes *  doAdd(struct ExprRes * Res1, struct ExprRes * Res2)  { 
+struct ExprRes * doAdd(struct ExprRes * Res1, struct ExprRes * Res2)  { 
 
    	int reg;
    
@@ -72,7 +79,7 @@ struct ExprRes * doSub(struct ExprRes * Res1, struct ExprRes * Res2) {
 	return Res1;
 }
 
-struct ExprRes *  doMult(struct ExprRes * Res1, struct ExprRes * Res2)  { 
+struct ExprRes * doMult(struct ExprRes * Res1, struct ExprRes * Res2)  { 
 
    	int reg;
    
@@ -105,8 +112,8 @@ struct ExprRes * doDiv(struct ExprRes * Res1, struct ExprRes * Res2) {
 
 struct ExprRes * doMod(struct ExprRes * Res1, struct ExprRes * Res2) {
 	int reg = AvailTmpReg();
-
 	AppendSeq(Res1->Instrs, Res2->Instrs);
+
 	AppendSeq(Res1->Instrs, GenInstr(NULL, "div", TmpRegName(reg), TmpRegName(Res1->Reg), TmpRegName(Res2->Reg)));
 	AppendSeq(Res1->Instrs, GenInstr(NULL, "mfhi", TmpRegName(reg), NULL, NULL));
 
@@ -122,8 +129,8 @@ struct ExprRes * doExp(struct ExprRes * Res1, struct ExprRes * Res2) {
 	int index = AvailTmpReg();
 	char * loop = GenLabel();
 	char * done = GenLabel();
-
 	AppendSeq(Res1->Instrs, Res2->Instrs);
+
 	AppendSeq(Res1->Instrs, GenInstr(NULL, "li", TmpRegName(reg), "1", NULL));
 	AppendSeq(Res1->Instrs, GenInstr(NULL, "li", TmpRegName(index), "0", NULL));
 	AppendSeq(Res1->Instrs, GenInstr(loop, NULL, NULL, NULL, NULL));
@@ -195,10 +202,6 @@ struct InstrSeq * doAssign(char *name, struct ExprRes * Expr) {
   	return code;
 }
 
-struct ExprRes * doBoolLit(char * val) {
-
-}
-
 struct ExprRes * doEq(struct ExprRes * Res1,  struct ExprRes * Res2) {
 	struct ExprRes * Res;
     int reg = AvailTmpReg();
@@ -206,6 +209,92 @@ struct ExprRes * doEq(struct ExprRes * Res1,  struct ExprRes * Res2) {
  	Res = (struct ExprRes *) malloc(sizeof(struct ExprRes));
 
 	AppendSeq(Res1->Instrs, GenInstr(NULL, "seq", TmpRegName(reg), TmpRegName(Res1->Reg), TmpRegName(Res2->Reg)));
+
+    Res->Reg = reg;
+	Res->Instrs = Res1->Instrs;
+	ReleaseTmpReg(Res1->Reg);
+  	ReleaseTmpReg(Res2->Reg);
+	free(Res1);
+	free(Res2);
+	return Res;
+}
+
+struct ExprRes * doNeq(struct ExprRes * Res1,  struct ExprRes * Res2) {
+	struct ExprRes * Res;
+	int reg = AvailTmpReg();
+	AppendSeq(Res1->Instrs, Res2->Instrs);
+	Res = (struct ExprRes*) malloc(sizeof(struct ExprRes));
+
+	AppendSeq(Res1->Instrs, GenInstr(NULL, "sne", TmpRegName(reg), TmpRegName(Res1->Reg), TmpRegName(Res2->Reg)));
+
+    Res->Reg = reg;
+	Res->Instrs = Res1->Instrs;
+	ReleaseTmpReg(Res1->Reg);
+  	ReleaseTmpReg(Res2->Reg);
+	free(Res1);
+	free(Res2);
+	return Res;
+}
+
+struct ExprRes * doLT(struct ExprRes * Res1, struct ExprRes * Res2) {
+	struct ExprRes * Res;
+	int reg = AvailTmpReg();
+	AppendSeq(Res1->Instrs, Res2->Instrs);
+	Res = (struct ExprRes*) malloc(sizeof(struct ExprRes));
+
+	AppendSeq(Res1->Instrs, GenInstr(NULL, "slt", TmpRegName(reg), TmpRegName(Res1->Reg), TmpRegName(Res2->Reg)));
+
+    Res->Reg = reg;
+	Res->Instrs = Res1->Instrs;
+	ReleaseTmpReg(Res1->Reg);
+  	ReleaseTmpReg(Res2->Reg);
+	free(Res1);
+	free(Res2);
+	return Res;
+}
+
+struct ExprRes * doLTE(struct ExprRes * Res1, struct ExprRes * Res2) {
+	struct ExprRes * Res;
+	int reg = AvailTmpReg();
+	AppendSeq(Res1->Instrs, Res2->Instrs);
+	Res = (struct ExprRes*) malloc(sizeof(struct ExprRes));
+
+	AppendSeq(Res1->Instrs, GenInstr(NULL, "sle", TmpRegName(reg), TmpRegName(Res1->Reg), TmpRegName(Res2->Reg)));
+
+    Res->Reg = reg;
+	Res->Instrs = Res1->Instrs;
+	ReleaseTmpReg(Res1->Reg);
+  	ReleaseTmpReg(Res2->Reg);
+	free(Res1);
+	free(Res2);
+	return Res;
+}
+
+struct ExprRes * doGT(struct ExprRes * Res1, struct ExprRes * Res2) {
+	struct ExprRes * Res;
+	int reg = AvailTmpReg();
+	AppendSeq(Res1->Instrs, Res2->Instrs);
+	Res = (struct ExprRes*) malloc(sizeof(struct ExprRes));
+
+	AppendSeq(Res1->Instrs, GenInstr(NULL, "sgt", TmpRegName(reg), TmpRegName(Res1->Reg), TmpRegName(Res2->Reg)));
+
+    Res->Reg = reg;
+	Res->Instrs = Res1->Instrs;
+	ReleaseTmpReg(Res1->Reg);
+  	ReleaseTmpReg(Res2->Reg);
+	free(Res1);
+	free(Res2);
+	return Res;
+}
+
+struct ExprRes * doGTE(struct ExprRes * Res1, struct ExprRes * Res2) {
+	struct ExprRes * Res;
+	int reg = AvailTmpReg();
+	AppendSeq(Res1->Instrs, Res2->Instrs);
+	Res = (struct ExprRes*) malloc(sizeof(struct ExprRes));
+
+	AppendSeq(Res1->Instrs, GenInstr(NULL, "sge", TmpRegName(reg), TmpRegName(Res1->Reg), TmpRegName(Res2->Reg)));
+
     Res->Reg = reg;
 	Res->Instrs = Res1->Instrs;
 	ReleaseTmpReg(Res1->Reg);
@@ -216,11 +305,46 @@ struct ExprRes * doEq(struct ExprRes * Res1,  struct ExprRes * Res2) {
 }
 
 struct ExprRes * doAnd(struct ExprRes * Res1,  struct ExprRes * Res2) {
+	int reg = AvailTmpReg();
+	AppendSeq(Res1->Instrs, Res2->Instrs);
 
+	AppendSeq(Res1->Instrs, GenInstr(NULL, "and", TmpRegName(reg), TmpRegName(Res1->Reg), TmpRegName(Res2->Reg)));
+
+	ReleaseTmpReg(Res1->Reg);
+	ReleaseTmpReg(Res2->Reg);
+	Res1->Reg = reg;
+	free(Res2);
+	return Res1;
 }
 
 struct ExprRes * doOr(struct ExprRes * Res1,  struct ExprRes * Res2) {
+	int reg = AvailTmpReg();
+	AppendSeq(Res1->Instrs, Res2->Instrs);
 
+	AppendSeq(Res1->Instrs, GenInstr(NULL, "or", TmpRegName(reg), TmpRegName(Res1->Reg), TmpRegName(Res2->Reg)));
+
+	ReleaseTmpReg(Res1->Reg);
+	ReleaseTmpReg(Res2->Reg);
+	Res1->Reg = reg;
+	free(Res2);
+	return Res1;
+}
+
+struct ExprRes * doNot(struct ExprRes * Res) {
+    int reg = AvailTmpReg();
+	char * els = GenLabel();
+	char * end = GenLabel();
+ 	
+	AppendSeq(Res->Instrs, GenInstr(NULL, "beq", "$zero", TmpRegName(Res->Reg), els));
+	AppendSeq(Res->Instrs, GenInstr(NULL, "li", TmpRegName(reg), "0", NULL));
+	AppendSeq(Res->Instrs, GenInstr(NULL, "j", end, NULL, NULL));
+	AppendSeq(Res->Instrs, GenInstr(els, NULL, NULL, NULL, NULL));
+	AppendSeq(Res->Instrs, GenInstr(NULL, "li", TmpRegName(reg), "1", NULL));
+	AppendSeq(Res->Instrs, GenInstr(end, NULL, NULL, NULL, NULL));
+
+	ReleaseTmpReg(Res->Reg);
+	Res->Reg = reg;
+	return Res;
 }
 
 extern struct InstrSeq * doIf(struct ExprRes * Res, struct InstrSeq * seq) {
@@ -229,6 +353,7 @@ extern struct InstrSeq * doIf(struct ExprRes * Res, struct InstrSeq * seq) {
     AppendSeq(Res->Instrs, GenInstr(NULL, "beq", "$zero", TmpRegName(Res->Reg), label));
 	seq2 = AppendSeq(Res->Instrs, seq);
 	AppendSeq(seq2, GenInstr(label, NULL, NULL, NULL, NULL));
+	ReleaseTmpReg(Res->Reg);
 	free(Res);
 	return seq2;
 }
