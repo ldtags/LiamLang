@@ -17,102 +17,102 @@ extern SymTab *table;
 
 struct ExprRes *  doIntLit(char * digits)  { 
 
-   struct ExprRes *res;
+   	struct ExprRes *res;
   
-  res = (struct ExprRes *) malloc(sizeof(struct ExprRes));
-  res->Reg = AvailTmpReg();
-  res->Instrs = GenInstr(NULL,"li",TmpRegName(res->Reg),digits,NULL);
+  	res = (struct ExprRes *) malloc(sizeof(struct ExprRes));
+  	res->Reg = AvailTmpReg();
+  	res->Instrs = GenInstr(NULL,"li",TmpRegName(res->Reg),digits,NULL);
 
-  return res;
+  	return res;
 }
 
 struct ExprRes *  doRval(char * name)  { 
 
-   struct ExprRes *res;
+   	struct ExprRes *res;
   
-   if (!findName(table, name)) {
+   	if (!findName(table, name)) {
 		writeIndicator(getCurrentColumnNum());
 		writeMessage("Undeclared variable");
-   }
-  res = (struct ExprRes *) malloc(sizeof(struct ExprRes));
-  res->Reg = AvailTmpReg();
-  res->Instrs = GenInstr(NULL,"lw",TmpRegName(res->Reg),name,NULL);
+   	}
+  	res = (struct ExprRes *) malloc(sizeof(struct ExprRes));
+  	res->Reg = AvailTmpReg();
+  	res->Instrs = GenInstr(NULL,"lw",TmpRegName(res->Reg),name,NULL);
 
-  return res;
+  	return res;
 }
 
 struct ExprRes *  doAdd(struct ExprRes * Res1, struct ExprRes * Res2)  { 
 
-   int reg;
+   	int reg;
    
-  reg = AvailTmpReg();
-  AppendSeq(Res1->Instrs,Res2->Instrs);
-  AppendSeq(Res1->Instrs,GenInstr(NULL,"add",
-                                       TmpRegName(reg),
-                                       TmpRegName(Res1->Reg),
-                                       TmpRegName(Res2->Reg)));
-  ReleaseTmpReg(Res1->Reg);
-  ReleaseTmpReg(Res2->Reg);
-  Res1->Reg = reg;
-  free(Res2);
-  return Res1;
+  	reg = AvailTmpReg();
+  	AppendSeq(Res1->Instrs,Res2->Instrs);
+  	AppendSeq(Res1->Instrs,GenInstr(NULL,"add",
+  	                                     TmpRegName(reg),
+  	                                     TmpRegName(Res1->Reg),
+  	                                     TmpRegName(Res2->Reg)));
+  	ReleaseTmpReg(Res1->Reg);
+  	ReleaseTmpReg(Res2->Reg);
+  	Res1->Reg = reg;
+  	free(Res2);
+  	return Res1;
 }
 
 struct ExprRes *  doMult(struct ExprRes * Res1, struct ExprRes * Res2)  { 
 
-   int reg;
+   	int reg;
    
-  reg = AvailTmpReg();
-  AppendSeq(Res1->Instrs,Res2->Instrs);
-  AppendSeq(Res1->Instrs,GenInstr(NULL,"mul",
-                                       TmpRegName(reg),
-                                       TmpRegName(Res1->Reg),
-                                       TmpRegName(Res2->Reg)));
-  ReleaseTmpReg(Res1->Reg);
-  ReleaseTmpReg(Res2->Reg);
-  Res1->Reg = reg;
-  free(Res2);
-  return Res1;
+  	reg = AvailTmpReg();
+  	AppendSeq(Res1->Instrs,Res2->Instrs);
+  	AppendSeq(Res1->Instrs,GenInstr(NULL,"mul",
+  	                                     TmpRegName(reg),
+  	                                     TmpRegName(Res1->Reg),
+  	                                     TmpRegName(Res2->Reg)));
+  	ReleaseTmpReg(Res1->Reg);
+  	ReleaseTmpReg(Res2->Reg);
+  	Res1->Reg = reg;
+  	free(Res2);
+  	return Res1;
 }
 
 struct InstrSeq * doPrint(struct ExprRes * Expr) { 
 
-  struct InstrSeq *code;
+  	struct InstrSeq *code;
     
-  code = Expr->Instrs;
+  	code = Expr->Instrs;
   
-    AppendSeq(code,GenInstr(NULL,"li","$v0","1",NULL));
-    AppendSeq(code,GenInstr(NULL,"move","$a0",TmpRegName(Expr->Reg),NULL));
-    AppendSeq(code,GenInstr(NULL,"syscall",NULL,NULL,NULL));
+	AppendSeq(code,GenInstr(NULL,"li","$v0","1",NULL));
+	AppendSeq(code,GenInstr(NULL,"move","$a0",TmpRegName(Expr->Reg),NULL));
+	AppendSeq(code,GenInstr(NULL,"syscall",NULL,NULL,NULL));
 
     AppendSeq(code,GenInstr(NULL,"li","$v0","4",NULL));
     AppendSeq(code,GenInstr(NULL,"la","$a0","_nl",NULL));
-   AppendSeq(code,GenInstr(NULL,"syscall",NULL,NULL,NULL));
+    AppendSeq(code,GenInstr(NULL,"syscall",NULL,NULL,NULL));
 
     ReleaseTmpReg(Expr->Reg);
     free(Expr);
 
-  return code;
+  	return code;
 }
 
 struct InstrSeq * doAssign(char *name, struct ExprRes * Expr) { 
 
-  struct InstrSeq *code;
+  	struct InstrSeq *code;
   
 
-   if (!findName(table, name)) {
+   	if (!findName(table, name)) {
 		writeIndicator(getCurrentColumnNum());
 		writeMessage("Undeclared variable");
-   }
+   	}
 
-  code = Expr->Instrs;
+  	code = Expr->Instrs;
   
-  AppendSeq(code,GenInstr(NULL,"sw",TmpRegName(Expr->Reg), name,NULL));
+  	AppendSeq(code,GenInstr(NULL,"sw",TmpRegName(Expr->Reg), name,NULL));
 
-  ReleaseTmpReg(Expr->Reg);
-  free(Expr);
+  	ReleaseTmpReg(Expr->Reg);
+  	free(Expr);
   
-  return code;
+  	return code;
 }
 
 extern struct ExprRes * doEq(struct ExprRes * Res1,  struct ExprRes * Res2) {
@@ -161,32 +161,33 @@ extern struct InstrSeq * doIf(struct ExprRes *res1, struct ExprRes *res2, struct
 */
 void							 
 Finish(struct InstrSeq *Code)
-{ struct InstrSeq *code;
-  //struct SymEntry *entry;
+{ 	
+	struct InstrSeq *code;
+  	//struct SymEntry *entry;
     int hasMore;
-  struct Attr * attr;
+  	struct Attr * attr;
 
 
-  code = GenInstr(NULL,".text",NULL,NULL,NULL);
-  //AppendSeq(code,GenInstr(NULL,".align","2",NULL,NULL));
-  AppendSeq(code,GenInstr(NULL,".globl","main",NULL,NULL));
-  AppendSeq(code, GenInstr("main",NULL,NULL,NULL,NULL));
-  AppendSeq(code,Code);
-  AppendSeq(code, GenInstr(NULL, "li", "$v0", "10", NULL)); 
-  AppendSeq(code, GenInstr(NULL,"syscall",NULL,NULL,NULL));
-  AppendSeq(code,GenInstr(NULL,".data",NULL,NULL,NULL));
-  AppendSeq(code,GenInstr(NULL,".align","4",NULL,NULL));
-  AppendSeq(code,GenInstr("_nl",".asciiz","\"\\n\"",NULL,NULL));
+  	code = GenInstr(NULL,".text",NULL,NULL,NULL);
+  	//AppendSeq(code,GenInstr(NULL,".align","2",NULL,NULL));
+  	AppendSeq(code,GenInstr(NULL,".globl","main",NULL,NULL));
+  	AppendSeq(code, GenInstr("main",NULL,NULL,NULL,NULL));
+  	AppendSeq(code,Code);
+  	AppendSeq(code, GenInstr(NULL, "li", "$v0", "10", NULL)); 
+  	AppendSeq(code, GenInstr(NULL,"syscall",NULL,NULL,NULL));
+  	AppendSeq(code,GenInstr(NULL,".data",NULL,NULL,NULL));
+  	AppendSeq(code,GenInstr(NULL,".align","4",NULL,NULL));
+  	AppendSeq(code,GenInstr("_nl",".asciiz","\"\\n\"",NULL,NULL));
 
- hasMore = startIterator(table);
- while (hasMore) {
-	AppendSeq(code,GenInstr((char *) getCurrentName(table),".word","0",NULL,NULL));
-    hasMore = nextEntry(table);
- }
+ 	hasMore = startIterator(table);
+ 	while (hasMore) {
+		AppendSeq(code,GenInstr((char *) getCurrentName(table),".word","0",NULL,NULL));
+    	hasMore = nextEntry(table);
+ 	}
   
-  WriteSeq(code);
+  	WriteSeq(code);
   
-  return;
+  	return;
 }
 
 

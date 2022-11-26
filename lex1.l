@@ -5,8 +5,8 @@
 
 #define YY_INPUT(buf,result,max_size) \
 	{ int c = getNextSourceChar(); \
-          result = (c == EOF) ? YY_NULL : (buf[0] = c, 1); \
-        }
+    result = (c == EOF) ? YY_NULL : (buf[0] = c, 1); \
+  }
 
 %}
 
@@ -36,7 +36,7 @@ print					                {return Write;}
 \n				                    {}
 
 .				{writeIndicator(getCurrentColumnNum());
-				   writeMessage("Illegal Character in lex");}
+				 writeMessage("Illegal Character in lex");}
 
 %%
 
@@ -44,5 +44,3 @@ print					                {return Write;}
 int yywrap () {
     return 1;
 }
-			
-	
