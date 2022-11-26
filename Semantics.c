@@ -400,18 +400,18 @@ struct InstrSeq  *  doIfElse(struct ExprRes * Res, struct InstrSeq * ifseq, stru
 }
 
 struct InstrSeq * doWhile(struct ExprRes * Res, struct InstrSeq * lpseq) {
-	struct InstrSeq * seq, condseq;
+	struct InstrSeq * seq;
 	char * loop = GenLabel();
 	char * done = GenLabel();
-
-	AppendSeq(Res->Instrs, GenInstr(loop, NULL, NULL, NULL, NULL));
-	AppendSeq(Res->Instrs, GenInstr(NULL, "beq", "$zero", TmpRegName(Res->Reg), done));
-	seq = AppendSeq(Res->Instrs, lpseq);
+	
+	seq = AppendSeq(GenInstr(loop, NULL, NULL, NULL, NULL), Res->Instrs);
+	AppendSeq(seq, GenInstr(NULL, "beq", "$zero", TmpRegName(Res->Reg), done));
+	AppendSeq(seq, lpseq);
 	AppendSeq(seq, GenInstr(NULL, "j", loop, NULL, NULL));
 	AppendSeq(seq, GenInstr(done, NULL, NULL, NULL, NULL));
 
 
-	// ReleaseTmpReg(Res->Reg);
+	ReleaseTmpReg(Res->Reg);
 	free(Res);
 	free(loop);
 	free(done);

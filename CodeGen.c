@@ -55,6 +55,13 @@ AppendSeq(struct InstrSeq *Seq1, struct InstrSeq *Seq2)
   return Seq1;
 }
 
+void printSeq(struct InstrSeq * seq) {
+  while(seq) {
+    printf("%s\t%s  %s, %s, %s\n", seq->Label, seq->OpCode, seq->Oprnd1, seq->Oprnd2, seq->Oprnd3);
+    seq = seq->Next;
+  }
+}
+
 void	  
 WriteSeq(struct InstrSeq *ASeq)
 { struct InstrSeq *instr;
