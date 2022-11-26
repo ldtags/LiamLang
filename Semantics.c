@@ -95,7 +95,7 @@ struct ExprRes * doDiv(struct ExprRes * Res1, struct ExprRes * Res2) {
 	AppendSeq(Res1->Instrs, GenInstr(NULL, "div",
 											TmpRegName(reg),
 											TmpRegName(Res1->Reg),
-											TmpRegName(Res1->Reg)));
+											TmpRegName(Res2->Reg)));
 	ReleaseTmpReg(Res1->Reg);
 	ReleaseTmpReg(Res2->Reg);
 	Res1->Reg = reg;

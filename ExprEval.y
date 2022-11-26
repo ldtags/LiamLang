@@ -60,9 +60,10 @@ Expr			    :	Term									                { $$ = $1; };
 Term		      :	Term '*' Factor								        { $$ = doMult($1, $3); };
 Term          : Term '/' Factor                       { $$ = doDiv($1, $3); };
 Term		      :	Factor									              { $$ = $1; };
+Factor        : '(' Expr ')'                          { $$ = $2; };
 Factor		    :	IntLit									              { $$ = doIntLit(yytext); };
 Factor		    :	Id									                  { $$ = doRval($1); };
-Id			      : Ident	  								              { $$ = strdup(yytext); }
+Id			      : Ident	  								              { $$ = strdup(yytext); };
  
 %%
 
