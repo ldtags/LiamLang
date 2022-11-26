@@ -31,6 +31,7 @@ false                         {return FALSE;}
 \&\&                          {return AND;}
 (\<\=)|(\=\<)                 {return LTE;}
 (\>\=)|(\=\>)                 {return GTE;}
+\+\+                          {return INCR;}
 \=					                  {return '=';}
 \<                            {return '<';}
 \>                            {return '>';}

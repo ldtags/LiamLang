@@ -1,5 +1,12 @@
 {
     "files.associations": {
         "stdio.h": "c"
-    }
+    },
+    "makefile.launchConfigurations": [
+        {
+            "cwd": "/root/ltags230/compsci/cs442/LiamLang",
+            "binaryPath": "/root/ltags230/compsci/cs442/LiamLang/comp",
+            "binaryArgs": []
+        }
+    ]
 }

@@ -158,6 +158,16 @@ struct ExprRes * doUMin(struct ExprRes * Res) {
 	return Res;
 }
 
+struct ExprRes * doIncr(struct ExprRes * Res) {
+	int reg = AvailTmpReg();
+
+	AppendSeq(Res->Instrs, GenInstr(NULL, "addi", TmpRegName(reg), TmpRegName(Res->Reg), "1"));
+
+	ReleaseTmpReg(Res->Reg);
+	Res->Reg = reg;
+	return Res;
+}
+
 struct InstrSeq * doPrint(struct ExprRes * Expr) { 
 
   	struct InstrSeq *code;
@@ -366,7 +376,6 @@ extern struct InstrSeq * doIf(struct ExprRes * Res, struct InstrSeq * seq) {
 
 	ReleaseTmpReg(Res->Reg);
 	free(Res);
-	free(seq);
 	free(label);
 	return seq2;
 }
@@ -385,15 +394,13 @@ struct InstrSeq  *  doIfElse(struct ExprRes * Res, struct InstrSeq * ifseq, stru
 
 	ReleaseTmpReg(Res->Reg);
 	free(Res);
-	free(ifseq);
-	free(elseq);
 	free(els);
 	free(end);
 	return seq;
 }
 
 struct InstrSeq * doWhile(struct ExprRes * Res, struct InstrSeq * lpseq) {
-	struct InstrSeq * seq;
+	struct InstrSeq * seq, condseq;
 	char * loop = GenLabel();
 	char * done = GenLabel();
 
@@ -403,9 +410,9 @@ struct InstrSeq * doWhile(struct ExprRes * Res, struct InstrSeq * lpseq) {
 	AppendSeq(seq, GenInstr(NULL, "j", loop, NULL, NULL));
 	AppendSeq(seq, GenInstr(done, NULL, NULL, NULL, NULL));
 
-	ReleaseTmpReg(Res->Reg);
+
+	// ReleaseTmpReg(Res->Reg);
 	free(Res);
-	free(lpseq);
 	free(loop);
 	free(done);
 	return seq;

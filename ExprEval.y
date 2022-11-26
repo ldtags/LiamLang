@@ -56,6 +56,7 @@ extern SymTab *table;
 %token AND
 %token LTE
 %token GTE
+%token INCR
 
 %%
 
@@ -94,6 +95,7 @@ Expon         : Expon '^' Unary                                         { $$ = d
 Expon         : Unary                                                   { $$ = $1; };
 Unary         : '-' Unary                                               { $$ = doUMin($2); };
 Unary         : '!' Unary                                               { $$ = doNot($2); };
+Unary         : INCR Unary                                              { $$ = doIncr($2); };
 Unary         : Factor                                                  { $$ = $1; };
 Factor        : '(' iExpr ')'                                           { $$ = $2; };
 Factor		    :	IntLit									                                { $$ = doIntLit(yytext); };

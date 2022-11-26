@@ -18,10 +18,6 @@ struct ExprResList {
 	struct ExprResList * Next;
 };
 
-struct Attribute {
-  int type;
-};
-
 
 /* Semantics Actions */
 extern struct ExprRes   *  doIntLit(char * digits);
@@ -35,6 +31,7 @@ extern struct ExprRes   *  doDiv(struct ExprRes * Res1,  struct ExprRes * Res2);
 extern struct ExprRes   *  doMod(struct ExprRes * Res1, struct ExprRes * Res2);
 extern struct ExprRes   *  doExp(struct ExprRes * Res1, struct ExprRes * Res2);
 extern struct ExprRes   *  doUMin(struct ExprRes * Res);
+extern struct ExprRes   *  doIncr(struct ExprRes * Res);
 extern struct InstrSeq  *  doPrint(struct ExprRes * Expr);
 extern struct ExprRes   *  doEq(struct ExprRes * Res1,  struct ExprRes * Res2);
 extern struct ExprRes   *  doNeq(struct ExprRes * Res1,  struct ExprRes * Res2);
@@ -42,12 +39,12 @@ extern struct ExprRes   *  doLT(struct ExprRes * Res1, struct ExprRes * Res2);
 extern struct ExprRes   *  doLTE(struct ExprRes * Res1, struct ExprRes * Res2);
 extern struct ExprRes   *  doGT(struct ExprRes * Res1, struct ExprRes * Res2);
 extern struct ExprRes   *  doGTE(struct ExprRes * Res1, struct ExprRes * Res2);
-extern struct ExprRes   *  GEQ(struct ExprRes * Res1, struct ExprRes * Res2, char * OpCode)
+extern struct ExprRes   *  GEQ(struct ExprRes * Res1, struct ExprRes * Res2, char * OpCode);
 extern struct ExprRes   *  doAnd(struct ExprRes * Res1,  struct ExprRes * Res2);
 extern struct ExprRes   *  doOr(struct ExprRes * Res1,  struct ExprRes * Res2);
 extern struct ExprRes   *  doNot(struct ExprRes * Res);
 extern struct InstrSeq  *  doIf(struct ExprRes *bRes, struct InstrSeq * seq);
-extern struct InstrSeq  *  doElse(struct InstrSeq * seq);
+extern struct InstrSeq  *  doIfElse(struct ExprRes * Res, struct InstrSeq * ifseq, struct InstrSeq * elseq);
 extern struct InstrSeq  *  doWhile(struct ExprRes * Res, struct InstrSeq * seq);
 
 extern void	Finish(struct InstrSeq *Code);
