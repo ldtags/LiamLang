@@ -103,6 +103,30 @@ struct ExprRes * doDiv(struct ExprRes * Res1, struct ExprRes * Res2) {
 	return Res1;
 }
 
+struct ExprRes * doMod(struct ExprRes * Res1, struct ExprRes * Res2) {
+	int reg = AvailTmpReg();
+	
+}
+
+struct ExprRes * doExp(struct ExprRes * Res1, struct ExprRes * Res2) {
+	int reg = AvailTmpReg();
+	
+}
+
+struct ExprRes * doUMin(struct ExprRes * Res) {
+	int reg = AvailTmpReg();
+	int temp = AvailTmpReg();
+	AppendSeq(Res->Instrs, GenInstr(NULL, "addi", TmpRegName(temp), "$zero", "-1"));
+	AppendSeq(Res->Instrs, GenInstr(NULL, "mul",
+										   TmpRegName(reg),
+										   TmpRegName(Res->Reg),
+										   TmpRegName(temp)));
+	ReleaseTmpReg(Res->Reg);
+	ReleaseTmpReg(temp);
+	Res->Reg = reg;
+	return Res;
+}
+
 struct InstrSeq * doPrint(struct ExprRes * Expr) { 
 
   	struct InstrSeq *code;

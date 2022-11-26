@@ -29,6 +29,8 @@ extern SymTab *table;
 
 %type <string> Id
 %type <ExprRes> Factor
+%type <ExprRes> Unary
+%type <ExprRes> Expon
 %type <ExprRes> Term
 %type <ExprRes> Expr
 %type <InstrSeq> StmtSeq
@@ -57,9 +59,14 @@ BExpr		      :	Expr EQ Expr								          { $$ = doEq($1, $3); };
 Expr			    :	Expr '+' Term								          { $$ = doAdd($1, $3); };
 Expr          : Expr '-' Term                         { $$ = doSub($1, $3); };
 Expr			    :	Term									                { $$ = $1; };
-Term		      :	Term '*' Factor								        { $$ = doMult($1, $3); };
-Term          : Term '/' Factor                       { $$ = doDiv($1, $3); };
-Term		      :	Factor									              { $$ = $1; };
+Term		      :	Term '*' Expon								        { $$ = doMult($1, $3); };
+Term          : Term '/' Expon                        { $$ = doDiv($1, $3); };
+Term          : Term '%' Expon                        { $$ = doMod($1, $3); };
+Term		      :	Expon 									              { $$ = $1; };
+Expon         : Expon '^' Unary                       { $$ = doExp($1, $3); };
+Expon         : Unary                                 { $$ = $1; };
+Unary         : '-' Unary                             { $$ = doUMin($2); };
+Unary         : Factor                                { $$ = $1; };
 Factor        : '(' Expr ')'                          { $$ = $2; };
 Factor		    :	IntLit									              { $$ = doIntLit(yytext); };
 Factor		    :	Id									                  { $$ = doRval($1); };
