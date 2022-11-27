@@ -114,7 +114,7 @@ void declare(char * name, enum Type type, struct ExprRes * Res) {
 	attr->type = type;
 	if(Res != NULL) {
 		attr->array = 1;
-		printSeq(Res->Instrs);
+		// printSeq(Res->Instrs);
 		size = (int) strtol(Res->Instrs->Oprnd2, buf, 10);
 	} else {
 		attr->array = 0;
