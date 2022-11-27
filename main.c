@@ -17,6 +17,6 @@ int main(int argc, char * argv[]) {
 		aFile = fopen(argv[3], "w");
 	else
 		aFile = stdout;
-
+		
 	yyparse();
 }

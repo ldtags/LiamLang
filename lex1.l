@@ -47,6 +47,8 @@ false                         {return FALSE;}
 \}					                  {return '}';}
 \(					                  {return '(';}
 \)					                  {return ')';}
+\[                            {return '[';}
+\]                            {return ']';}
 
 [ ]				                    {}
 \t				                    {}

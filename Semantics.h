@@ -3,13 +3,22 @@
 */
 
 /* Semantic Records */
+enum Type {INT, BOOL};
+
 struct IdList {
   struct SymEntry * TheEntry;
   struct IdList * Next;
 };
 
+typedef struct Attribute {
+  enum Type type;
+  long size;
+  int array;
+} Attribute;
+
 struct ExprRes {
   int Reg;
+  struct Attribute * Attr;
   struct InstrSeq * Instrs;
 };
 
@@ -23,7 +32,9 @@ struct ExprResList {
 extern struct ExprRes   *  doIntLit(char * digits);
 extern struct ExprRes   *  doBoolLit(int val);
 extern struct ExprRes   *  doRval(char * name);
-extern struct InstrSeq  *  doAssign(char * name,  struct ExprRes * Res1);
+extern struct ExprRes   *  doArrVal(char * name, struct ExprRes * Res);
+extern struct InstrSeq  *  doAssign(char * name, struct ExprRes * Res1);
+extern struct InstrSeq  *  doArrAssign(char * name, struct ExprRes * Res1, struct ExprRes * Res2);
 extern struct ExprRes   *  doAdd(struct ExprRes * Res1,  struct ExprRes * Res2);
 extern struct ExprRes   *  doSub(struct ExprRes * Res1,  struct ExprRes * Res2);
 extern struct ExprRes   *  doMult(struct ExprRes * Res1,  struct ExprRes * Res2);
@@ -48,3 +59,4 @@ extern struct InstrSeq  *  doIfElse(struct ExprRes * Res, struct InstrSeq * ifse
 extern struct InstrSeq  *  doWhile(struct ExprRes * Res, struct InstrSeq * seq);
 
 extern void	Finish(struct InstrSeq *Code);
+extern void declare(char * name, enum Type type, struct ExprRes * Res);

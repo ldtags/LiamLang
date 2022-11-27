@@ -37,6 +37,7 @@ extern SymTab *table;
 %type <ExprRes> EqExpr
 %type <ExprRes> BExpr
 %type <ExprRes> iExpr
+%type <ExprRes> ArrFactor
 %type <InstrSeq> StmtSeq
 %type <InstrSeq> Stmt
 
@@ -63,12 +64,17 @@ extern SymTab *table;
 Prog			    :	Declarations StmtSeq						                        { Finish($2); };
 Declarations	:	Dec Declarations						                            { };
 Declarations	:											                                    { };
-Dec			      :	Int Id ';'	                                            { enterName(table, $2); };
-Dec           : Bool Id ';'                                             { enterName(table, $2); };
+Dec			      :	Int Id ';'	                                            { declare($2, INT, NULL); };
+Dec           : Int Id '[' ArrFactor ']' ';'                            { declare($2, INT, $4); };
+Dec           : Bool Id ';'                                             { declare($2, BOOL, NULL); };
+Dec           : Bool Id '[' ArrFactor ']' ';'                           { declare($2, BOOL, $4); };
+ArrFactor     : IntLit									                                { $$ = doIntLit(yytext); };
+// ArrFactor			: iExpr																										{ yyerror("Must use constant"); };
 StmtSeq 	    :	Stmt StmtSeq								                            { $$ = AppendSeq($1, $2); };
 StmtSeq		    :											                                    { $$ = NULL; };
 Stmt			    :	Write iExpr ';'								                          { $$ = doPrint($2); };
 Stmt			    :	Id '=' iExpr ';'								                        { $$ = doAssign($1, $3); };
+Stmt          : Id '[' iExpr ']' '=' iExpr ';'                          { $$ = doArrAssign($1, $3, $6); };
 Stmt			    :	IF '(' iExpr ')' '{' StmtSeq '}'	                      { $$ = doIf($3, $6); };
 Stmt          : IF '(' iExpr ')' '{' StmtSeq '}' ELSE '{' StmtSeq '}'   { $$ = doIfElse($3, $6, $10); }; 
 Stmt          : WHILE '(' iExpr ')' '{' StmtSeq '}'                     { $$ = doWhile($3, $6); };
@@ -100,6 +106,7 @@ Unary         : Factor                                                  { $$ = $
 Factor        : '(' iExpr ')'                                           { $$ = $2; };
 Factor		    :	IntLit									                                { $$ = doIntLit(yytext); };
 Factor		    :	Id									                                    { $$ = doRval($1); };
+Factor        : Id '[' iExpr ']'																				{ $$ = doArrVal($1, $3); };
 Factor        : TRUE                                                    { $$ = doBoolLit(1); };
 Factor        : FALSE                                                   { $$ = doBoolLit(0); };
 Id			      : Ident	  								                                { $$ = strdup(yytext); };
