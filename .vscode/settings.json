@@ -1,9 +1,0 @@
-{
-    "files.associations": {
-        "subTest": "plaintext",
-        "source": "plaintext",
-        "stdio.h": "c",
-        "new": "c",
-        "cmath": "c"
-    },
-}
