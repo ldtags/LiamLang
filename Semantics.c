@@ -273,124 +273,45 @@ struct InstrSeq * doPrint(struct ExprRes * Expr) {
 }
 
 struct ExprRes * doEq(struct ExprRes * Res1,  struct ExprRes * Res2) {
-    int reg = AvailTmpReg();
- 	struct ExprRes * Res = (struct ExprRes *) malloc(sizeof(struct ExprRes));
-
-	AppendSeq(Res1->Instrs, Res2->Instrs);
-	AppendSeq(Res1->Instrs, GenInstr(NULL, "seq", TmpRegName(reg), TmpRegName(Res1->Reg), TmpRegName(Res2->Reg)));
-
-    Res->Reg = reg;
-	Res->Instrs = Res1->Instrs;
-	ReleaseTmpReg(Res->Reg);
-	ReleaseTmpReg(Res1->Reg);
-  	ReleaseTmpReg(Res2->Reg);
-	free(Res1);
-	free(Res2);
-	return Res;
+    return GEQ(Res1, Res2, "seq");
 }
 
 struct ExprRes * doNeq(struct ExprRes * Res1,  struct ExprRes * Res2) {
-	int reg = AvailTmpReg();
-	struct ExprRes * Res = (struct ExprRes*) malloc(sizeof(struct ExprRes));
-
-	AppendSeq(Res1->Instrs, Res2->Instrs);
-	AppendSeq(Res1->Instrs, GenInstr(NULL, "sne", TmpRegName(reg), TmpRegName(Res1->Reg), TmpRegName(Res2->Reg)));
-
-    Res->Reg = reg;
-	Res->Instrs = Res1->Instrs;
-	ReleaseTmpReg(Res->Reg);
-	ReleaseTmpReg(Res1->Reg);
-  	ReleaseTmpReg(Res2->Reg);
-	free(Res1);
-	free(Res2);
-	return Res;
+	return GEQ(Res1, Res2, "sne");
 }
 
 struct ExprRes * doLT(struct ExprRes * Res1, struct ExprRes * Res2) {
-	int reg = AvailTmpReg();
-	struct ExprRes * Res = (struct ExprRes*) malloc(sizeof(struct ExprRes));
-
-	AppendSeq(Res1->Instrs, Res2->Instrs);
-	AppendSeq(Res1->Instrs, GenInstr(NULL, "slt", TmpRegName(reg), TmpRegName(Res1->Reg), TmpRegName(Res2->Reg)));
-
-    Res->Reg = reg;
-	Res->Instrs = Res1->Instrs;
-	ReleaseTmpReg(Res->Reg);
-	ReleaseTmpReg(Res1->Reg);
-  	ReleaseTmpReg(Res2->Reg);
-	free(Res1);
-	free(Res2);
-	return Res;
+	return GEQ(Res1, Res2, "slt");
 }
 
 struct ExprRes * doLTE(struct ExprRes * Res1, struct ExprRes * Res2) {
-	int reg = AvailTmpReg();
-	struct ExprRes * Res = (struct ExprRes*) malloc(sizeof(struct ExprRes));
-
-	AppendSeq(Res1->Instrs, Res2->Instrs);
-	AppendSeq(Res1->Instrs, GenInstr(NULL, "sle", TmpRegName(reg), TmpRegName(Res1->Reg), TmpRegName(Res2->Reg)));
-
-    Res->Reg = reg;
-	Res->Instrs = Res1->Instrs;
-	ReleaseTmpReg(Res->Reg);
-	ReleaseTmpReg(Res1->Reg);
-  	ReleaseTmpReg(Res2->Reg);
-	free(Res1);
-	free(Res2);
-	return Res;
+	return GEQ(Res1, Res2, "sle");
 }
 
 struct ExprRes * doGT(struct ExprRes * Res1, struct ExprRes * Res2) {
-	int reg = AvailTmpReg();
-	struct ExprRes * Res = (struct ExprRes*) malloc(sizeof(struct ExprRes));
-
-	AppendSeq(Res1->Instrs, Res2->Instrs);
-	AppendSeq(Res1->Instrs, GenInstr(NULL, "sgt", TmpRegName(reg), TmpRegName(Res1->Reg), TmpRegName(Res2->Reg)));
-
-    Res->Reg = reg;
-	Res->Instrs = Res1->Instrs;
-	ReleaseTmpReg(Res->Reg);
-	ReleaseTmpReg(Res1->Reg);
-  	ReleaseTmpReg(Res2->Reg);
-	free(Res1);
-	free(Res2);
-	return Res;
+	return GEQ(Res1, Res2, "sgt");
 }
 
 struct ExprRes * doGTE(struct ExprRes * Res1, struct ExprRes * Res2) {
+	return GEQ(Res1, Res2, "sge");
+}
+
+struct ExprRes * GEQ(struct ExprRes * Res1, struct ExprRes * Res2, char * OpCode) {
 	int reg = AvailTmpReg();
 	struct ExprRes * Res = (struct ExprRes*) malloc(sizeof(struct ExprRes));
 
 	AppendSeq(Res1->Instrs, Res2->Instrs);
-	AppendSeq(Res1->Instrs, GenInstr(NULL, "sge", TmpRegName(reg), TmpRegName(Res1->Reg), TmpRegName(Res2->Reg)));
+	AppendSeq(Res1->Instrs, GenInstr(NULL, OpCode, TmpRegName(reg), TmpRegName(Res1->Reg), TmpRegName(Res2->Reg)));
 
     Res->Reg = reg;
 	Res->Instrs = Res1->Instrs;
-	ReleaseTmpReg(Res->Reg);
+    ReleaseTmpReg(Res->Reg);
 	ReleaseTmpReg(Res1->Reg);
   	ReleaseTmpReg(Res2->Reg);
 	free(Res1);
 	free(Res2);
 	return Res;
 }
-
-// struct ExprRes * GEQ(struct ExprRes * Res1, struct ExprRes * Res2, char * OpCode) {
-// 	int reg = AvailTmpReg();
-// 	struct ExprRes * Res = (struct ExprRes*) malloc(sizeof(struct ExprRes));
-
-// 	AppendSeq(Res1->Instrs, Res2->Instrs);
-// 	AppendSeq(Res1->Instrs, GenInstr(NULL, OpCode, TmpRegName(reg), TmpRegName(Res1->Reg), TmpRegName(Res2->Reg)));
-
-//     Res->Reg = reg;
-// 	Res->Instrs = Res1->Instrs;
-//  ReleaseTmpReg(Res->Reg);
-// 	ReleaseTmpReg(Res1->Reg);
-//   	ReleaseTmpReg(Res2->Reg);
-// 	free(Res1);
-// 	free(Res2);
-// 	free(OpCode);
-// 	return Res;
-// }
 
 struct ExprRes * doAnd(struct ExprRes * Res1,  struct ExprRes * Res2) {
 	int reg = AvailTmpReg();
