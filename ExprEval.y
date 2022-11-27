@@ -21,13 +21,14 @@ extern SymTab *table;
 
 
 %union {
-  long val;
+  int type;
   char * string;
   struct ExprRes * ExprRes;
   struct InstrSeq * InstrSeq;
 }
 
 %type <string> Id
+%type <type> Var
 %type <ExprRes> Factor
 %type <ExprRes> Unary
 %type <ExprRes> Expon
@@ -64,10 +65,11 @@ extern SymTab *table;
 Prog			    :	Declarations StmtSeq						                        { Finish($2); };
 Declarations	:	Dec Declarations						                            { };
 Declarations	:											                                    { };
-Dec			      :	Int Id ';'	                                            { declare($2, INT, NULL); };
-Dec           : Int Id '[' ArrFactor ']' ';'                            { declare($2, INT, $4); };
-Dec           : Bool Id ';'                                             { declare($2, BOOL, NULL); };
-Dec           : Bool Id '[' ArrFactor ']' ';'                           { declare($2, BOOL, $4); };
+Dec			      :	Var Id ';'	                                            { declare($2, $1, NULL, NULL); };
+Dec           : Var Id '[' ArrFactor ']' ';'                            { declare($2, $1, $4, NULL); };
+Dec           : Var Id '[' ArrFactor ']' '[' ArrFactor ']' ';'          { declare($2, $1, $4, $7); };
+Var           : Int                                                     { $$ = 0; };
+Var           : Bool                                                    { $$ = 1; };
 ArrFactor     : IntLit									                                { $$ = doIntLit(yytext); };
 // ArrFactor			: iExpr																										{ yyerror("Must use constant"); };
 StmtSeq 	    :	Stmt StmtSeq								                            { $$ = AppendSeq($1, $2); };
@@ -76,6 +78,7 @@ Stmt			    :	Write iExpr ';'								                          { $$ = doPrint($2)
 Stmt          : Id INCR ';'                                             { $$ = doIncr($1); };
 Stmt			    :	Id '=' iExpr ';'								                        { $$ = doAssign($1, $3); };
 Stmt          : Id '[' iExpr ']' '=' iExpr ';'                          { $$ = doArrAssign($1, $3, $6); };
+Stmt          : Id '[' iExpr ']' '[' iExpr ']' '=' iExpr ';'            { $$ = do2DAssign($1, $3, $6, $9); };
 Stmt			    :	IF '(' iExpr ')' '{' StmtSeq '}'	                      { $$ = doIf($3, $6); };
 Stmt          : IF '(' iExpr ')' '{' StmtSeq '}' ELSE '{' StmtSeq '}'   { $$ = doIfElse($3, $6, $10); }; 
 Stmt          : WHILE '(' iExpr ')' '{' StmtSeq '}'                     { $$ = doWhile($3, $6); };
@@ -102,12 +105,12 @@ Expon         : Expon '^' Unary                                         { $$ = d
 Expon         : Unary                                                   { $$ = $1; };
 Unary         : '-' Unary                                               { $$ = doUMin($2); };
 Unary         : '!' Unary                                               { $$ = doNot($2); };
-// Unary         : INCR Unary                                              { $$ = doIncr($2); };
 Unary         : Factor                                                  { $$ = $1; };
 Factor        : '(' iExpr ')'                                           { $$ = $2; };
 Factor		    :	IntLit									                                { $$ = doIntLit(yytext); };
 Factor		    :	Id									                                    { $$ = doRval($1); };
 Factor        : Id '[' iExpr ']'																				{ $$ = doArrVal($1, $3); };
+Factor        : Id '[' iExpr ']' '[' iExpr ']'                          { $$ = do2DVal($1, $3, $6); };
 Factor        : TRUE                                                    { $$ = doBoolLit(1); };
 Factor        : FALSE                                                   { $$ = doBoolLit(0); };
 Id			      : Ident	  								                                { $$ = strdup(yytext); };

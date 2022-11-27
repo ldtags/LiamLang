@@ -12,7 +12,7 @@ struct IdList {
 
 typedef struct Attribute {
   enum Type type;
-  long size;
+  int size;
   int array;
 } Attribute;
 
@@ -32,9 +32,11 @@ struct ExprResList {
 extern struct ExprRes   *  doIntLit(char * digits);
 extern struct ExprRes   *  doBoolLit(int val);
 extern struct ExprRes   *  doRval(char * name);
-extern struct ExprRes   *  doArrVal(char * name, struct ExprRes * Res);
+extern struct ExprRes   *  doArrVal(char * name, struct ExprRes * offExpr);
+extern struct ExprRes   *  do2DVal(char * name, struct ExprRes * offExpr1, struct ExprRes * offExpr2);
 extern struct InstrSeq  *  doAssign(char * name, struct ExprRes * Res1);
-extern struct InstrSeq  *  doArrAssign(char * name, struct ExprRes * Res1, struct ExprRes * Res2);
+extern struct InstrSeq  *  doArrAssign(char * name, struct ExprRes * offExpr, struct ExprRes * valExpr);
+extern struct InstrSeq  *  do2DAssign(char * name, struct ExprRes * offExpr1, struct ExprRes * offExpr2, struct ExprRes * valExpr);
 extern struct ExprRes   *  doAdd(struct ExprRes * Res1,  struct ExprRes * Res2);
 extern struct ExprRes   *  doSub(struct ExprRes * Res1,  struct ExprRes * Res2);
 extern struct ExprRes   *  doMult(struct ExprRes * Res1,  struct ExprRes * Res2);
@@ -60,4 +62,10 @@ extern struct InstrSeq  *  doIfElse(struct ExprRes * Res, struct InstrSeq * ifse
 extern struct InstrSeq  *  doWhile(struct ExprRes * Res, struct InstrSeq * seq);
 
 extern void	Finish(struct InstrSeq *Code);
-extern void declare(char * name, enum Type type, struct ExprRes * Res);
+extern void declare(char * name, enum Type type, struct ExprRes * Res1, struct ExprRes * Res2);
+
+/*
+  Returns the size of specified enum Type type
+  Sizes based off of the C native types
+*/
+extern int size(enum Type type);

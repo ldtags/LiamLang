@@ -51,7 +51,6 @@ struct ExprRes * doArrVal(char * name, struct ExprRes * offExpr) {
 	struct ExprRes * Res = (struct ExprRes*) malloc(sizeof(struct ExprRes));
 	Res->Reg = AvailTmpReg();
 	Res->Instrs = offExpr->Instrs;
-
 	AppendSeq(Res->Instrs, GenInstr(NULL, "la", TmpRegName(Res->Reg), name, NULL));
 	AppendSeq(Res->Instrs, GenInstr(NULL, "sll", TmpRegName(offExpr->Reg), TmpRegName(offExpr->Reg), Imm(2)));
 	AppendSeq(Res->Instrs, GenInstr(NULL, "add", TmpRegName(Res->Reg), TmpRegName(Res->Reg), TmpRegName(offExpr->Reg)));
@@ -62,14 +61,41 @@ struct ExprRes * doArrVal(char * name, struct ExprRes * offExpr) {
 	return Res;
 }
 
-struct InstrSeq * doAssign(char *name, struct ExprRes * Expr) { 
+struct ExprRes * do2DVal(char * name, struct ExprRes * offExpr1, struct ExprRes * offExpr2) {
+	if(!findName(table, name)) {
+		writeIndicator(getCurrentColumnNum());
+		writeMessage("Undeclared array");
+	}
+
+	int off = AvailTmpReg();
+	struct Attribute * attr = getCurrentAttr(table);
+	struct ExprRes * Res = (struct ExprRes*) malloc(sizeof(struct ExprRes));
+	Res->Reg = AvailTmpReg();
+	Res->Instrs = offExpr1->Instrs;
+	AppendSeq(Res->Instrs, offExpr2->Instrs);
+	AppendSeq(Res->Instrs, GenInstr(NULL, "la", TmpRegName(Res->Reg), name, NULL));
+	AppendSeq(Res->Instrs, GenInstr(NULL, "li", TmpRegName(off), Imm(attr->size / size(attr->type)), NULL));
+	AppendSeq(Res->Instrs, GenInstr(NULL, "mul", TmpRegName(off), TmpRegName(off), TmpRegName(offExpr1->Reg)));
+	AppendSeq(Res->Instrs, GenInstr(NULL, "add", TmpRegName(off), TmpRegName(off), TmpRegName(offExpr2->Reg)));
+	AppendSeq(Res->Instrs, GenInstr(NULL, "sll", TmpRegName(off), TmpRegName(off), Imm(2)));
+	AppendSeq(Res->Instrs, GenInstr(NULL, "add", TmpRegName(Res->Reg), TmpRegName(Res->Reg), TmpRegName(off)));
+	AppendSeq(Res->Instrs, GenInstr(NULL, "lw", TmpRegName(Res->Reg), RegOff(0, TmpRegName(Res->Reg)), NULL));
+
+	ReleaseTmpReg(offExpr1->Reg);
+	ReleaseTmpReg(offExpr2->Reg);
+	ReleaseTmpReg(off);
+	free(offExpr1);
+	free(offExpr2);
+	return Res;
+}
+
+struct InstrSeq * doAssign(char * name, struct ExprRes * Expr) { 
    	if (!findName(table, name)) {
 		writeIndicator(getCurrentColumnNum());
 		writeMessage("Undeclared variable");
    	}
 
   	struct InstrSeq * code = Expr->Instrs;
-
   	AppendSeq(code,GenInstr(NULL, "sw", TmpRegName(Expr->Reg), name, NULL));
 
   	ReleaseTmpReg(Expr->Reg);
@@ -80,12 +106,11 @@ struct InstrSeq * doAssign(char *name, struct ExprRes * Expr) {
 struct InstrSeq * doArrAssign(char * name, struct ExprRes * offExpr, struct ExprRes * valExpr) {
 	if(!findName(table, name)) {
 		writeIndicator(getCurrentColumnNum());
-		writeMessage("Undeclared variable");
+		writeMessage("Undeclared array");
 	}
 
-	struct InstrSeq * seq = offExpr->Instrs;
 	int reg = AvailTmpReg();
-
+	struct InstrSeq * seq = offExpr->Instrs;
 	AppendSeq(seq, valExpr->Instrs);
 	AppendSeq(seq, GenInstr(NULL, "la", TmpRegName(reg), name, NULL));
 	AppendSeq(seq, GenInstr(NULL, "sll", TmpRegName(offExpr->Reg), TmpRegName(offExpr->Reg), Imm(2)));
@@ -100,7 +125,39 @@ struct InstrSeq * doArrAssign(char * name, struct ExprRes * offExpr, struct Expr
 	return seq;
 }
 
-void declare(char * name, enum Type type, struct ExprRes * Res) {
+struct InstrSeq * do2DAssign(char * name, struct ExprRes * offExpr1, struct ExprRes * offExpr2, struct ExprRes * valExpr) {
+	if(!findName(table, name)) {
+		writeIndicator(getCurrentColumnNum());
+		writeMessage("Undeclared 2D array");
+	}
+
+	int reg = AvailTmpReg();
+	int off = AvailTmpReg();
+	struct Attribute * attr = getCurrentAttr(table);
+	struct InstrSeq * seq = offExpr1->Instrs;
+	AppendSeq(seq, offExpr2->Instrs);
+	AppendSeq(seq, valExpr->Instrs);
+	AppendSeq(seq, GenInstr(NULL, "li", TmpRegName(off), Imm(attr->size / size(attr->type)), NULL));
+	AppendSeq(seq, GenInstr(NULL, "mul", TmpRegName(off), TmpRegName(off), TmpRegName(offExpr1->Reg)));
+	AppendSeq(seq, GenInstr(NULL, "add", TmpRegName(off), TmpRegName(off), TmpRegName(offExpr2->Reg)));
+	AppendSeq(seq, GenInstr(NULL, "li", TmpRegName(reg), Imm(size(attr->type)), NULL));
+	AppendSeq(seq, GenInstr(NULL, "mul", TmpRegName(off), TmpRegName(off), TmpRegName(reg)));
+	AppendSeq(seq, GenInstr(NULL, "la", TmpRegName(reg), name, NULL));
+	AppendSeq(seq, GenInstr(NULL, "add", TmpRegName(reg), TmpRegName(reg), TmpRegName(off)));
+	AppendSeq(seq, GenInstr(NULL, "sw", TmpRegName(valExpr->Reg), RegOff(0, TmpRegName(reg)), NULL));
+
+	ReleaseTmpReg(offExpr1->Reg);
+	ReleaseTmpReg(offExpr2->Reg);
+	ReleaseTmpReg(valExpr->Reg);
+	ReleaseTmpReg(reg);
+	ReleaseTmpReg(off);
+	free(offExpr1);
+	free(offExpr2);
+	free(valExpr);
+	return seq;
+}
+
+void declare(char * name, enum Type type, struct ExprRes * Res1, struct ExprRes * Res2) {
 	if(!enterName(table, name)) {
 		writeIndicator(getCurrentColumnNum());
 		writeMessage("Variable already exists");
@@ -110,19 +167,28 @@ void declare(char * name, enum Type type, struct ExprRes * Res) {
 	char ** buf;
 	struct Attribute * attr = (struct Attribute*) malloc(sizeof(struct Attribute));
 	attr->type = type;
-	if(Res != NULL) {
+	attr->array = 0;
+
+	if(Res1 != NULL) {
 		attr->array = 1;
-		size = (int) strtol(Res->Instrs->Oprnd2, buf, 10);
-	} else {
-		attr->array = 0;
+		size = (int) strtol(Res1->Instrs->Oprnd2, buf, 10);
+		ReleaseTmpReg(Res1->Reg);
+		free(Res1);
+	}
+
+	if(Res2 != NULL) {
+		attr->array = 2;
+		size *= (int) strtol(Res2->Instrs->Oprnd2, buf, 10);
+		ReleaseTmpReg(Res2->Reg);
+		free(Res2);
 	}
 
 	switch(type) {
 		case INT:
-			attr->size = size * 4;
+			attr->size = size * (int) sizeof(int);
 			break;
 		case BOOL:
-			attr->size = size;
+			attr->size = size * (int) sizeof(_Bool);
 			break;
 		default:
 			writeIndicator(getCurrentColumnNum());
@@ -408,6 +474,20 @@ extern struct InstrSeq * doIf(struct ExprRes *res1, struct ExprRes *res2, struct
 }
 
 */
+
+int size(enum Type type) {
+  	switch(type) {
+  	  	case INT:
+  	  	  	return sizeof(int);
+  	  	case BOOL:
+  	  	  	return sizeof(_Bool);
+  	  	default:
+  	    	writeIndicator(getCurrentColumnNum());
+			writeMessage("Unrecognized type");
+  	    	return 1;
+  	}
+}
+
 
 void Finish(struct InstrSeq *Code)
 { 	
