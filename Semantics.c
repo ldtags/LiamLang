@@ -37,7 +37,7 @@ struct ExprRes * doRval(char * name)  {
 
   	struct ExprRes * res = (struct ExprRes *) malloc(sizeof(struct ExprRes));
   	res->Reg = AvailTmpReg();
-  	res->Instrs = GenInstr(NULL,"lw",TmpRegName(res->Reg),name,NULL);
+  	res->Instrs = GenInstr(NULL,"lw" ,TmpRegName(res->Reg), name, NULL);
 
   	return res;
 }
@@ -70,7 +70,7 @@ struct InstrSeq * doAssign(char *name, struct ExprRes * Expr) {
 
   	struct InstrSeq * code = Expr->Instrs;
 
-  	AppendSeq(code,GenInstr(NULL,"sw",TmpRegName(Expr->Reg), name,NULL));
+  	AppendSeq(code,GenInstr(NULL, "sw", TmpRegName(Expr->Reg), name, NULL));
 
   	ReleaseTmpReg(Expr->Reg);
   	free(Expr);
@@ -83,19 +83,17 @@ struct InstrSeq * doArrAssign(char * name, struct ExprRes * offExpr, struct Expr
 		writeMessage("Undeclared variable");
 	}
 
-	struct InstrSeq * seq = valExpr->Instrs;
-	int offReg = offExpr->Reg;
-	int valReg = valExpr->Reg;
+	struct InstrSeq * seq = offExpr->Instrs;
 	int reg = AvailTmpReg();
 
-	AppendSeq(seq, offExpr->Instrs);
+	AppendSeq(seq, valExpr->Instrs);
 	AppendSeq(seq, GenInstr(NULL, "la", TmpRegName(reg), name, NULL));
-	AppendSeq(seq, GenInstr(NULL, "sll", TmpRegName(offReg), TmpRegName(offReg), Imm(2)));
-	AppendSeq(seq, GenInstr(NULL, "add", TmpRegName(reg), TmpRegName(reg), TmpRegName(offReg)));
-	AppendSeq(seq, GenInstr(NULL, "sw", TmpRegName(valReg), RegOff(0, TmpRegName(reg)), NULL));
+	AppendSeq(seq, GenInstr(NULL, "sll", TmpRegName(offExpr->Reg), TmpRegName(offExpr->Reg), Imm(2)));
+	AppendSeq(seq, GenInstr(NULL, "add", TmpRegName(reg), TmpRegName(reg), TmpRegName(offExpr->Reg)));
+	AppendSeq(seq, GenInstr(NULL, "sw", TmpRegName(valExpr->Reg), RegOff(0, TmpRegName(reg)), NULL));
 
-	ReleaseTmpReg(offReg);
-	ReleaseTmpReg(valReg);
+	ReleaseTmpReg(offExpr->Reg);
+	ReleaseTmpReg(valExpr->Reg);
 	ReleaseTmpReg(reg);
 	free(offExpr);
 	free(valExpr);
@@ -114,7 +112,6 @@ void declare(char * name, enum Type type, struct ExprRes * Res) {
 	attr->type = type;
 	if(Res != NULL) {
 		attr->array = 1;
-		// printSeq(Res->Instrs);
 		size = (int) strtol(Res->Instrs->Oprnd2, buf, 10);
 	} else {
 		attr->array = 0;
@@ -284,6 +281,7 @@ struct ExprRes * doEq(struct ExprRes * Res1,  struct ExprRes * Res2) {
 
     Res->Reg = reg;
 	Res->Instrs = Res1->Instrs;
+	ReleaseTmpReg(Res->Reg);
 	ReleaseTmpReg(Res1->Reg);
   	ReleaseTmpReg(Res2->Reg);
 	free(Res1);
@@ -300,6 +298,7 @@ struct ExprRes * doNeq(struct ExprRes * Res1,  struct ExprRes * Res2) {
 
     Res->Reg = reg;
 	Res->Instrs = Res1->Instrs;
+	ReleaseTmpReg(Res->Reg);
 	ReleaseTmpReg(Res1->Reg);
   	ReleaseTmpReg(Res2->Reg);
 	free(Res1);
@@ -316,6 +315,7 @@ struct ExprRes * doLT(struct ExprRes * Res1, struct ExprRes * Res2) {
 
     Res->Reg = reg;
 	Res->Instrs = Res1->Instrs;
+	ReleaseTmpReg(Res->Reg);
 	ReleaseTmpReg(Res1->Reg);
   	ReleaseTmpReg(Res2->Reg);
 	free(Res1);
@@ -332,6 +332,7 @@ struct ExprRes * doLTE(struct ExprRes * Res1, struct ExprRes * Res2) {
 
     Res->Reg = reg;
 	Res->Instrs = Res1->Instrs;
+	ReleaseTmpReg(Res->Reg);
 	ReleaseTmpReg(Res1->Reg);
   	ReleaseTmpReg(Res2->Reg);
 	free(Res1);
@@ -348,6 +349,7 @@ struct ExprRes * doGT(struct ExprRes * Res1, struct ExprRes * Res2) {
 
     Res->Reg = reg;
 	Res->Instrs = Res1->Instrs;
+	ReleaseTmpReg(Res->Reg);
 	ReleaseTmpReg(Res1->Reg);
   	ReleaseTmpReg(Res2->Reg);
 	free(Res1);
@@ -364,6 +366,7 @@ struct ExprRes * doGTE(struct ExprRes * Res1, struct ExprRes * Res2) {
 
     Res->Reg = reg;
 	Res->Instrs = Res1->Instrs;
+	ReleaseTmpReg(Res->Reg);
 	ReleaseTmpReg(Res1->Reg);
   	ReleaseTmpReg(Res2->Reg);
 	free(Res1);
@@ -380,6 +383,7 @@ struct ExprRes * doGTE(struct ExprRes * Res1, struct ExprRes * Res2) {
 
 //     Res->Reg = reg;
 // 	Res->Instrs = Res1->Instrs;
+//  ReleaseTmpReg(Res->Reg);
 // 	ReleaseTmpReg(Res1->Reg);
 //   	ReleaseTmpReg(Res2->Reg);
 // 	free(Res1);
@@ -474,9 +478,8 @@ struct InstrSeq * doWhile(struct ExprRes * Res, struct InstrSeq * lpseq) {
 	seq = AppendSeq(GenInstr(loop, NULL, NULL, NULL, NULL), Res->Instrs);
 	AppendSeq(seq, GenInstr(NULL, "beq", "$zero", TmpRegName(Res->Reg), done));
 	AppendSeq(seq, lpseq);
-	AppendSeq(seq, GenInstr(NULL, "j", loop, NULL, NULL));
+	AppendSeq(seq, GenInstr(NULL, "b", loop, NULL, NULL));
 	AppendSeq(seq, GenInstr(done, NULL, NULL, NULL, NULL));
-
 
 	ReleaseTmpReg(Res->Reg);
 	free(Res);

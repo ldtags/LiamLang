@@ -50,6 +50,8 @@ false                         {return FALSE;}
 \[                            {return '[';}
 \]                            {return ']';}
 
+\/\/.*\n                      {}
+\/\*(.|\n)*\*\/               {}
 [ ]				                    {}
 \t				                    {}
 \r				                    {}
