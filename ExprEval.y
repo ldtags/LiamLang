@@ -73,6 +73,7 @@ ArrFactor     : IntLit									                                { $$ = doIntLit(y
 StmtSeq 	    :	Stmt StmtSeq								                            { $$ = AppendSeq($1, $2); };
 StmtSeq		    :											                                    { $$ = NULL; };
 Stmt			    :	Write iExpr ';'								                          { $$ = doPrint($2); };
+Stmt          : Id INCR ';'                                             { $$ = doIncr($1); };
 Stmt			    :	Id '=' iExpr ';'								                        { $$ = doAssign($1, $3); };
 Stmt          : Id '[' iExpr ']' '=' iExpr ';'                          { $$ = doArrAssign($1, $3, $6); };
 Stmt			    :	IF '(' iExpr ')' '{' StmtSeq '}'	                      { $$ = doIf($3, $6); };
@@ -101,7 +102,7 @@ Expon         : Expon '^' Unary                                         { $$ = d
 Expon         : Unary                                                   { $$ = $1; };
 Unary         : '-' Unary                                               { $$ = doUMin($2); };
 Unary         : '!' Unary                                               { $$ = doNot($2); };
-Unary         : INCR Unary                                              { $$ = doIncr($2); };
+// Unary         : INCR Unary                                              { $$ = doIncr($2); };
 Unary         : Factor                                                  { $$ = $1; };
 Factor        : '(' iExpr ')'                                           { $$ = $2; };
 Factor		    :	IntLit									                                { $$ = doIntLit(yytext); };

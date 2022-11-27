@@ -219,14 +219,18 @@ struct ExprRes * doUMin(struct ExprRes * Res) {
 	return Res;
 }
 
-struct ExprRes * doIncr(struct ExprRes * Res) {
+struct InstrSeq * doIncr(char * name) {
+	if(!findName(table, name)) {
+		writeIndicator(getCurrentColumnNum());
+		writeMessage("Variable does not exist");
+	}
+
 	int reg = AvailTmpReg();
-
-	AppendSeq(Res->Instrs, GenInstr(NULL, "addi", TmpRegName(reg), TmpRegName(Res->Reg), "1"));
-
-	ReleaseTmpReg(Res->Reg);
-	Res->Reg = reg;
-	return Res;
+	struct InstrSeq * seq = GenInstr(NULL, "lw", TmpRegName(reg), name, NULL);
+	AppendSeq(seq, GenInstr(NULL, "addi", TmpRegName(reg), TmpRegName(reg), Imm(1)));
+	AppendSeq(seq, GenInstr(NULL, "sw", TmpRegName(reg), name, NULL));
+	ReleaseTmpReg(reg);
+	return seq;
 }
 
 struct InstrSeq * doPrint(struct ExprRes * Expr) { 

@@ -43,7 +43,7 @@ extern struct ExprRes   *  GAR(struct ExprRes * Res1, struct ExprRes * Res2, cha
 extern struct ExprRes   *  doMod(struct ExprRes * Res1, struct ExprRes * Res2);
 extern struct ExprRes   *  doExp(struct ExprRes * Res1, struct ExprRes * Res2);
 extern struct ExprRes   *  doUMin(struct ExprRes * Res);
-extern struct ExprRes   *  doIncr(struct ExprRes * Res);
+extern struct InstrSeq  *  doIncr(char * name);
 extern struct InstrSeq  *  doPrint(struct ExprRes * Expr);
 extern struct ExprRes   *  doEq(struct ExprRes * Res1,  struct ExprRes * Res2);
 extern struct ExprRes   *  doNeq(struct ExprRes * Res1,  struct ExprRes * Res2);
