@@ -1,12 +1,9 @@
 {
     "files.associations": {
-        "stdio.h": "c"
+        "subTest": "plaintext",
+        "source": "plaintext",
+        "stdio.h": "c",
+        "new": "c",
+        "cmath": "c"
     },
-    "makefile.launchConfigurations": [
-        {
-            "cwd": "/root/ltags230/compsci/cs442/LiamLang",
-            "binaryPath": "/root/ltags230/compsci/cs442/LiamLang/comp",
-            "binaryArgs": []
-        }
-    ]
 }
