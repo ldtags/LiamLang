@@ -32,6 +32,7 @@ struct ExprResList {
 
 /* Semantics Actions */
 extern char            **  doListLit(char * string);
+extern char             *  doStringLit(char * string);
 extern struct ExprRes   *  doIntLit(char * digits);
 extern struct ExprRes   *  doBoolLit(int val);
 extern struct ExprRes   *  doRval(char * name);

@@ -367,14 +367,14 @@ struct InstrSeq * doPrint(struct ExprRes * Expr) {
 }
 
 struct InstrSeq * doIOPrint(char ** list) {
-	struct InstSeq * code;
+	struct InstrSeq * code;
 	struct Attribute * attr;
 	char *name;
 	char *els;
 	char *end;
 	int reg;
 
-	for(int i = 0; i < strlen(list); i++) {
+	for(int i = 0; i < (sizeof(list) / sizeof(list[0])); i++) {
 		if(!findName(table, list[i])) {
 			writeIndicator(getCurrentColumnNum());
 			writeMessage("Undeclared variable cannot be printed");
@@ -419,7 +419,7 @@ struct InstrSeq * doIORead(char ** list) {
 	struct InstrSeq * code;
 	char *name;
 
-	for(int i = 0; i < strlen(list); i++) {
+	for(int i = 0; i < (sizeof(list) / sizeof(list[0])); i++) {
 		if(!findName(table, list[i])) {
 			writeIndicator(getCurrentColumnNum());
 			writeMessage("Cannot read into undeclared variable");
@@ -486,7 +486,7 @@ struct InstrSeq * doPrintSpaces(struct ExprRes * Expr) {
 struct InstrSeq * doPrintString(char * string) {
 	int i = 0;
 	char *name = malloc(strlen(string) + 2);
-	name[0] = "_";
+	name[0] = '_';
 	while(i < strlen(string)) {
 		name[i+1] = string[i];
 		i++;
