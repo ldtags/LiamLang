@@ -15,47 +15,53 @@ letter [A-Za-z]
 digit [0-9]
 
 %%
-if					                  {return IF;}
-else                          {return ELSE;}
-while                         {return WHILE;}
-int					                  {return Int;}
-bool                          {return Bool;}
-print					                {return Write;}
-true                          {return TRUE;}
-false                         {return FALSE;}
-{letter}({letter}|{digit})*	  {return Ident;}
-{digit}{digit}*		            {return IntLit;}
-\=\=					                {return EQ;}
-\!\=                          {return NEQ;}
-\|\|                          {return OR;}
-\&\&                          {return AND;}
-(\<\=)|(\=\<)                 {return LTE;}
-(\>\=)|(\=\>)                 {return GTE;}
-\+\+                          {return INCR;}
-\=					                  {return '=';}
-\<                            {return '<';}
-\>                            {return '>';}
-\!                            {return '!';}
-\+					                  {return '+';}
-\-                            {return '-';}
-\*					                  {return '*';}
-\/                            {return '/';}
-\%                            {return '%';}
-\^                            {return '^';}
-\;					                  {return ';';}
-\{					                  {return '{';}
-\}					                  {return '}';}
-\(					                  {return '(';}
-\)					                  {return ')';}
-\[                            {return '[';}
-\]                            {return ']';}
+if					                                                          {return IF;}
+else                                                                  {return ELSE;}
+while                                                                 {return WHILE;}
+int					                                                          {return Int;}
+bool                                                                  {return Bool;}
+print					                                                        {return Write;}
+printlines                                                            {return WriteLines;}
+printspaces                                                           {return WriteSpaces;}
+printstring                                                           {return WriteString;}       
+read                                                                  {return Read;}
+true                                                                  {return TRUE;}
+false                                                                 {return FALSE;}
+{letter}({letter}|{digit})*	                                          {return Ident;}
+({letter}({letter}|{digit})*)?(\,[ ]*{letter}({letter}|{digit})*)*    {return ListLit;}
+{digit}{digit}*		                                                    {return IntLit;}
+\"(.|\n)*\"                                                           {return StringLit;}
+\=\=					                                                        {return EQ;}
+\!\=                                                                  {return NEQ;}
+\|\|                                                                  {return OR;}
+\&\&                                                                  {return AND;}
+(\<\=)|(\=\<)                                                         {return LTE;}
+(\>\=)|(\=\>)                                                         {return GTE;}
+\+\+                                                                  {return INCR;}
+\=					                                                          {return '=';}
+\<                                                                    {return '<';}
+\>                                                                    {return '>';}
+\!                                                                    {return '!';}
+\+					                                                          {return '+';}
+\-                                                                    {return '-';}
+\*					                                                          {return '*';}
+\/                                                                    {return '/';}
+\%                                                                    {return '%';}
+\^                                                                    {return '^';}
+\;					                                                          {return ';';}
+\{					                                                          {return '{';}
+\}					                                                          {return '}';}
+\(					                                                          {return '(';}
+\)					                                                          {return ')';}
+\[                                                                    {return '[';}
+\]                                                                    {return ']';}
 
-\/\/.*\n                      {}
-\/\*(.|\n)*\*\/               {}
-[ ]				                    {}
-\t				                    {}
-\r				                    {}
-\n				                    {}
+\/\/.*\n                                                              {}
+\/\*(.|\n)*\*\/                                                       {}
+[ ]				                                                            {}
+\t				                                                            {}
+\r				                                                            {}
+\n				                                                            {}
 
 .				{writeIndicator(getCurrentColumnNum());
 				 writeMessage("Illegal Character in lex");}

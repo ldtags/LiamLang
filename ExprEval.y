@@ -23,11 +23,14 @@ extern SymTab *table;
 %union {
   int type;
   char * string;
+  char ** list;
   struct ExprRes * ExprRes;
   struct InstrSeq * InstrSeq;
 }
 
 %type <string> Id
+%type <string> String
+%type <list> List
 %type <type> Var
 %type <ExprRes> Factor
 %type <ExprRes> Unary
@@ -43,9 +46,15 @@ extern SymTab *table;
 %type <InstrSeq> Stmt
 
 %token Ident 		
-%token IntLit 	
+%token IntLit
+%token ListLit
+%token StringLit
 %token Int
 %token Write
+%token WriteLines
+%token WriteSpaces
+%token WriteString
+%token Read
 %token Bool
 %token TRUE
 %token FALSE
@@ -71,10 +80,14 @@ Dec           : Var Id '[' ArrFactor ']' '[' ArrFactor ']' ';'          { declar
 Var           : Int                                                     { $$ = 0; };
 Var           : Bool                                                    { $$ = 1; };
 ArrFactor     : IntLit									                                { $$ = doIntLit(yytext); };
-// ArrFactor			: iExpr																										{ yyerror("Must use constant"); };
 StmtSeq 	    :	Stmt StmtSeq								                            { $$ = AppendSeq($1, $2); };
 StmtSeq		    :											                                    { $$ = NULL; };
 Stmt			    :	Write iExpr ';'								                          { $$ = doPrint($2); };
+Stmt          : Write '(' List ')' ';'                                  { $$ = doIOPrint($3); };
+Stmt          : Read '(' List ')' ';'                                   { $$ = doIORead($3); };
+Stmt          : WriteLines '(' iExpr ')' ';'                            { $$ = doPrintLines($3); };
+Stmt          : WriteSpaces '(' iExpr ')' ';'                           { $$ = doPrintSpaces($3); };
+Stmt          : WriteString '(' String ')' ';'                          { $$ = doPrintString($3); };
 Stmt          : Id INCR ';'                                             { $$ = doIncr($1); };
 Stmt			    :	Id '=' iExpr ';'								                        { $$ = doAssign($1, $3); };
 Stmt          : Id '[' iExpr ']' '=' iExpr ';'                          { $$ = doArrAssign($1, $3, $6); };
@@ -114,6 +127,8 @@ Factor        : Id '[' iExpr ']' '[' iExpr ']'                          { $$ = d
 Factor        : TRUE                                                    { $$ = doBoolLit(1); };
 Factor        : FALSE                                                   { $$ = doBoolLit(0); };
 Id			      : Ident	  								                                { $$ = strdup(yytext); };
+List          : ListLit                                                 { $$ = doListLit(yytext); }
+String        : StringLit                                               { $$ = doStringLit(yytext); };
  
 %%
 

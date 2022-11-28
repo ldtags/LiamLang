@@ -2,8 +2,10 @@
    The action and supporting routines for performing semantics processing.
 */
 
+#define MAX_STRING 32
+
 /* Semantic Records */
-enum Type {INT, BOOL};
+enum Type {INT, BOOL, STRING};
 
 struct IdList {
   struct SymEntry * TheEntry;
@@ -29,6 +31,7 @@ struct ExprResList {
 
 
 /* Semantics Actions */
+extern char            **  doListLit(char * string);
 extern struct ExprRes   *  doIntLit(char * digits);
 extern struct ExprRes   *  doBoolLit(int val);
 extern struct ExprRes   *  doRval(char * name);
@@ -47,6 +50,11 @@ extern struct ExprRes   *  doExp(struct ExprRes * Res1, struct ExprRes * Res2);
 extern struct ExprRes   *  doUMin(struct ExprRes * Res);
 extern struct InstrSeq  *  doIncr(char * name);
 extern struct InstrSeq  *  doPrint(struct ExprRes * Expr);
+extern struct InstrSeq  *  doIOPrint(char ** list);
+extern struct InstrSeq  *  doIORead(char ** list);
+extern struct InstrSeq  *  doPrintLines(struct ExprRes * Expr);
+extern struct InstrSeq  *  doPrintSpaces(struct ExprRes * Expr);
+extern struct InstrSeq  *  doPrintString(char * string);
 extern struct ExprRes   *  doEq(struct ExprRes * Res1,  struct ExprRes * Res2);
 extern struct ExprRes   *  doNeq(struct ExprRes * Res1,  struct ExprRes * Res2);
 extern struct ExprRes   *  doLT(struct ExprRes * Res1, struct ExprRes * Res2);
@@ -69,3 +77,9 @@ extern void declare(char * name, enum Type type, struct ExprRes * Res1, struct E
   Sizes based off of the C native types
 */
 extern int size(enum Type type);
+
+/*
+  Returns 1 if the char is a valid id character
+  Returns 0 otherwise
+*/
+extern int idChar(char c);
