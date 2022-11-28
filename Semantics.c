@@ -377,34 +377,62 @@ struct InstrSeq * doIOPrint(char ** list) {
 	for(int i = 0; i < strlen(list); i++) {
 		if(!findName(table, list[i])) {
 			writeIndicator(getCurrentColumnNum());
-			writeMessage("Undeclared variable");
+			writeMessage("Undeclared variable cannot be printed");
 		} else {
 			name = getCurrentName(table);
 			attr = getCurrentAttr(table);
 			reg = AvailTmpReg();
 			switch(attr->type) {
 				case INT:
-					AppendSeq(code, GenInstr(NULL, "li", "$v0", Imm(1), NULL));
+					code = AppendSeq(code, GenInstr(NULL, "li", "$v0", Imm(1), NULL));
 					AppendSeq(code, GenInstr(NULL, "lw", TmpRegName(reg), name, NULL));
 					AppendSeq(code, GenInstr(NULL, "move", "$a0",TmpRegName(reg), NULL));
 					AppendSeq(code, GenInstr(NULL, "syscall", NULL, NULL, NULL));
 				case BOOL:
 					els = GenLabel();
-					AppendSeq(code, GenInstr(NULL, "lw", TmpRegName(reg), name, NULL));
+					end = GenLabel();
+					code = AppendSeq(code, GenInstr(NULL, "lw", TmpRegName(reg), name, NULL));
 					AppendSeq(code, GenInstr(NULL, "beq", TmpRegName(reg), "$zero", els));
-					AppendSeq(code,GenInstr(NULL,"la","$a0","_true",NULL));
+					AppendSeq(code, GenInstr(NULL,"la","$a0","_true",NULL));
+					AppendSeq(code, GenInstr(NULL, "b", end, NULL, NULL));
 					AppendSeq(code, GenInstr(els, NULL, NULL, NULL, NULL));
+					AppendSeq(code, GenInstr(NULL,"la","$a0","_false",NULL));
+					AppendSeq(code, GenInstr(end, NULL, NULL, NULL, NULL));
+					AppendSeq(code, GenInstr(NULL, "li", "$v0", Imm(4), NULL));
+					free(els);
+					free(end);
+				case STRING:
+					writeIndicator(getCurrentColumnNum());
+					writeMessage("To print strings, use printstring(\"StringLiteral\")");
 				default:
 					writeIndicator(getCurrentColumnNum());
-					writeMessage("Unknown type");
+					writeMessage("Unknown type, what are you trying to print?");
 			}
-			AppendSeq(code, GenInstr(NULL, "li", "$v0", Imm(4), NULL));
+			ReleaseTmpReg(reg);
 		}
 	}
+
+	return code;
 }
 
 struct InstrSeq * doIORead(char ** list) {
+	struct InstrSeq * code;
+	char *name;
 
+	for(int i = 0; i < strlen(list); i++) {
+		if(!findName(table, list[i])) {
+			writeIndicator(getCurrentColumnNum());
+			writeMessage("Cannot read into undeclared variable");
+		} else {
+			name = getCurrentName(table);
+			code = GenInstr(NULL, "li", "$v0", Imm(5), NULL);
+			AppendSeq(code, GenInstr(NULL, "syscall", NULL, NULL, NULL));
+			AppendSeq(code, GenInstr(NULL, "sw", "$v0", name, NULL));
+			// syscall?
+		}
+	}
+
+	return code;
 }
 
 struct InstrSeq * doPrintLines(struct ExprRes * Expr) {
