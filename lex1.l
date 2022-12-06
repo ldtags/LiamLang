@@ -20,7 +20,8 @@ else                                                                  {return EL
 while                                                                 {return WHILE;}
 int					                                                          {return Int;}
 bool                                                                  {return Bool;}
-print					                                                        {return Write;}
+print                                                                 {return Print;}
+printe   					                                                    {return Write;}
 printlines                                                            {return WriteLines;}
 printspaces                                                           {return WriteSpaces;}
 printstring                                                           {return WriteString;}       
@@ -28,7 +29,6 @@ read                                                                  {return Re
 true                                                                  {return TRUE;}
 false                                                                 {return FALSE;}
 {letter}({letter}|{digit})*	                                          {return Ident;}
-({letter}({letter}|{digit})*)?(\,[ ]*{letter}({letter}|{digit})*)*    {return ListLit;}
 {digit}{digit}*		                                                    {return IntLit;}
 \"(.|\n)*\"                                                           {return StringLit;}
 \=\=					                                                        {return EQ;}
@@ -55,6 +55,7 @@ false                                                                 {return FA
 \)					                                                          {return ')';}
 \[                                                                    {return '[';}
 \]                                                                    {return ']';}
+\,                                                                    {return ',';}
 
 \/\/.*\n                                                              {}
 \/\*(.|\n)*\*\/                                                       {}

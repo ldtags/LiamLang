@@ -1,14 +1,13 @@
 /* Semantics.h
    The action and supporting routines for performing semantics processing.
 */
-
 #define MAX_STRING 32
 
 /* Semantic Records */
 enum Type {INT, BOOL, STRING};
 
 struct IdList {
-  struct SymEntry * TheEntry;
+  struct SymEntry * Entry;
   struct IdList * Next;
 };
 
@@ -24,17 +23,20 @@ struct ExprRes {
   struct InstrSeq * Instrs;
 };
 
-struct ExprResList {
-	struct ExprRes *Expr;
-	struct ExprResList * Next;
+struct ExprList {
+	struct ExprRes * Expr;
+	struct ExprList * Next;
 };
 
 
 /* Semantics Actions */
-extern char            **  doListLit(char * string);
 extern char             *  doStringLit(char * string);
 extern struct ExprRes   *  doIntLit(char * digits);
 extern struct ExprRes   *  doBoolLit(int val);
+extern struct IdList    *  getIdListItem(char * id);
+extern struct IdList    *  addToIdList(struct IdList * list, struct IdList * listItem);
+extern struct ExprList  *  getExprListItem(struct ExprRes * Res);
+extern struct ExprList  *  addToExprList(struct ExprList * list, struct ExprList * listItem);
 extern struct ExprRes   *  doRval(char * name);
 extern struct ExprRes   *  doArrVal(char * name, struct ExprRes * offExpr);
 extern struct ExprRes   *  do2DVal(char * name, struct ExprRes * offExpr1, struct ExprRes * offExpr2);
@@ -51,8 +53,8 @@ extern struct ExprRes   *  doExp(struct ExprRes * Res1, struct ExprRes * Res2);
 extern struct ExprRes   *  doUMin(struct ExprRes * Res);
 extern struct InstrSeq  *  doIncr(char * name);
 extern struct InstrSeq  *  doPrint(struct ExprRes * Expr);
-extern struct InstrSeq  *  doIOPrint(char ** list);
-extern struct InstrSeq  *  doIORead(char ** list);
+extern struct InstrSeq  *  doIOPrint(struct ExprList * list);
+extern struct InstrSeq  *  doIORead(struct IdList * list);
 extern struct InstrSeq  *  doPrintLines(struct ExprRes * Expr);
 extern struct InstrSeq  *  doPrintSpaces(struct ExprRes * Expr);
 extern struct InstrSeq  *  doPrintString(char * string);

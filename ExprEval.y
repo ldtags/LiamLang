@@ -23,15 +23,20 @@ extern SymTab *table;
 %union {
   int type;
   char * string;
-  char ** list;
+  struct SymEntry * SymEntry;
+  struct IdList *  IdList;
   struct ExprRes * ExprRes;
+  struct ExprList * ExprList;
   struct InstrSeq * InstrSeq;
 }
 
+%type <type> Var
 %type <string> Id
 %type <string> String
-%type <list> List
-%type <type> Var
+%type <IdList> IdListItem
+%type <IdList> IdList
+%type <ExprList> ExprListItem
+%type <ExprList> ExprList
 %type <ExprRes> Factor
 %type <ExprRes> Unary
 %type <ExprRes> Expon
@@ -50,6 +55,7 @@ extern SymTab *table;
 %token ListLit
 %token StringLit
 %token Int
+%token Print
 %token Write
 %token WriteLines
 %token WriteSpaces
@@ -83,8 +89,8 @@ ArrFactor     : IntLit									                                { $$ = doIntLit(y
 StmtSeq 	    :	Stmt StmtSeq								                            { $$ = AppendSeq($1, $2); };
 StmtSeq		    :											                                    { $$ = NULL; };
 Stmt			    :	Write iExpr ';'								                          { $$ = doPrint($2); };
-Stmt          : Write '(' List ')' ';'                                  { $$ = doIOPrint($3); };
-Stmt          : Read '(' List ')' ';'                                   { $$ = doIORead($3); };
+Stmt          : Print '(' ExprList ')' ';'                              { $$ = doIOPrint($3); };
+Stmt          : Read '(' IdList ')' ';'                                 { $$ = doIORead($3); };
 Stmt          : WriteLines '(' iExpr ')' ';'                            { $$ = doPrintLines($3); };
 Stmt          : WriteSpaces '(' iExpr ')' ';'                           { $$ = doPrintSpaces($3); };
 Stmt          : WriteString '(' String ')' ';'                          { $$ = doPrintString($3); };
@@ -93,8 +99,11 @@ Stmt			    :	Id '=' iExpr ';'								                        { $$ = doAssign($1,
 Stmt          : Id '[' iExpr ']' '=' iExpr ';'                          { $$ = doArrAssign($1, $3, $6); };
 Stmt          : Id '[' iExpr ']' '[' iExpr ']' '=' iExpr ';'            { $$ = do2DAssign($1, $3, $6, $9); };
 Stmt			    :	IF '(' iExpr ')' '{' StmtSeq '}'	                      { $$ = doIf($3, $6); };
-Stmt          : IF '(' iExpr ')' '{' StmtSeq '}' ELSE '{' StmtSeq '}'   { $$ = doIfElse($3, $6, $10); }; 
+Stmt          : IF '(' iExpr ')' '{' StmtSeq '}' ELSE '{' StmtSeq '}'   { $$ = doIfElse($3, $6, $10); };
 Stmt          : WHILE '(' iExpr ')' '{' StmtSeq '}'                     { $$ = doWhile($3, $6); };
+ExprList      : ExprListItem                                            { $$ = $1; };
+ExprList      : ExprListItem ',' ExprList                               { $$ = addToExprList($3, $1); };
+ExprListItem  : iExpr                                                   { $$ = getExprListItem($1); };
 iExpr         : iExpr OR BExpr                                          { $$ = doOr($1, $3); };
 iExpr         : BExpr                                                   { $$ = $1; };
 BExpr         : BExpr AND EqExpr                                        { $$ = doAnd($1, $3); };
@@ -126,8 +135,10 @@ Factor        : Id '[' iExpr ']'																				{ $$ = doArrVal($1, $3); };
 Factor        : Id '[' iExpr ']' '[' iExpr ']'                          { $$ = do2DVal($1, $3, $6); };
 Factor        : TRUE                                                    { $$ = doBoolLit(1); };
 Factor        : FALSE                                                   { $$ = doBoolLit(0); };
+IdList        : IdListItem                                              { $$ = $1; };
+IdList        : IdListItem ',' IdList                                   { $$ = addToIdList($3, $1); };
+IdListItem    : Id                                                      { $$ = getIdListItem($1); };
 Id			      : Ident	  								                                { $$ = strdup(yytext); };
-List          : ListLit                                                 { $$ = doListLit(yytext); }
 String        : StringLit                                               { $$ = doStringLit(yytext); };
  
 %%
