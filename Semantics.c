@@ -49,6 +49,7 @@ struct ExprRes * doRval(char * name)  {
 
   	struct ExprRes * res = (struct ExprRes *) malloc(sizeof(struct ExprRes));
   	res->Reg = AvailTmpReg();
+	res->Attr = getCurrentAttr(table);
   	res->Instrs = GenInstr(NULL,"lw" ,TmpRegName(res->Reg), name, NULL);
 
   	return res;
@@ -62,6 +63,7 @@ struct ExprRes * doArrVal(char * name, struct ExprRes * offExpr) {
 
 	struct ExprRes * Res = (struct ExprRes*) malloc(sizeof(struct ExprRes));
 	Res->Reg = AvailTmpReg();
+	Res->Attr = getCurrentAttr(table);
 	Res->Instrs = offExpr->Instrs;
 	AppendSeq(Res->Instrs, GenInstr(NULL, "la", TmpRegName(Res->Reg), name, NULL));
 	AppendSeq(Res->Instrs, GenInstr(NULL, "sll", TmpRegName(offExpr->Reg), TmpRegName(offExpr->Reg), Imm(2)));
@@ -83,6 +85,7 @@ struct ExprRes * do2DVal(char * name, struct ExprRes * offExpr1, struct ExprRes 
 	struct Attribute * attr = getCurrentAttr(table);
 	struct ExprRes * Res = (struct ExprRes*) malloc(sizeof(struct ExprRes));
 	Res->Reg = AvailTmpReg();
+	Res->Attr = attr;
 	Res->Instrs = offExpr1->Instrs;
 	AppendSeq(Res->Instrs, offExpr2->Instrs);
 	AppendSeq(Res->Instrs, GenInstr(NULL, "la", TmpRegName(Res->Reg), name, NULL));
@@ -311,20 +314,8 @@ struct InstrSeq * doIncr(char * name) {
 	return seq;
 }
 
-struct InstrSeq * doPrint(struct ExprRes * Expr) { 
-  	struct InstrSeq *code;
-  	code = Expr->Instrs;
-  
-	AppendSeq(code,GenInstr(NULL,"li","$v0","1",NULL));
-	AppendSeq(code,GenInstr(NULL,"move","$a0",TmpRegName(Expr->Reg),NULL));
-	AppendSeq(code,GenInstr(NULL,"syscall",NULL,NULL,NULL));
-
-    AppendSeq(code,GenInstr(NULL,"li","$v0","4",NULL));
-    AppendSeq(code,GenInstr(NULL,"la","$a0","_nl",NULL));
-    AppendSeq(code,GenInstr(NULL,"syscall",NULL,NULL,NULL));
-
-    ReleaseTmpReg(Expr->Reg);
-    free(Expr);
+struct InstrSeq * doPrintln(struct ExprList * list) { 
+  	struct InstrSeq * code = doIOPrint(list);
 
   	return code;
 }
@@ -342,46 +333,46 @@ struct ExprList * addToExprList(struct ExprList * list, struct ExprList * listIt
 }
 
 struct InstrSeq * doIOPrint(struct ExprList * list) {
-	struct InstrSeq * code = (struct InstrSeq*) malloc(sizeof(struct InstrSeq));
-	struct ExprRes * res;
+	struct InstrSeq * instr = NULL;
+	struct ExprRes * expr;
 	struct Attribute * attr;
-	char *name;
-	char *els;
-	char *end;
+	int type;
 
 	while(list != NULL) {
-		res = list->Expr;
-		attr = res->Attr;
-		code = AppendSeq(code, res->Instrs);
-		if(attr->type == INT) {
-			AppendSeq(code, GenInstr(NULL, "li", "$v0", Imm(1), NULL));
-			AppendSeq(code, GenInstr(NULL, "move", "$a0", TmpRegName(res->Reg), NULL));
-			AppendSeq(code, GenInstr(NULL, "syscall", NULL, NULL, NULL));
-			if(list->Next != NULL) {
-				AppendSeq(code, GenInstr(NULL, "la", "$a0", "_space", NULL));
-				AppendSeq(code, GenInstr(NULL, "li", "$v0", Imm(4), NULL));
-				AppendSeq(code, GenInstr(NULL, "syscall", NULL, NULL, NULL));
-			}
-		} else if(attr->type == BOOL) {
-			els = GenLabel();
-			end = GenLabel();
-			AppendSeq(code, GenInstr(NULL, "beq", TmpRegName(res->Reg), "$zero", els));
-			AppendSeq(code, GenInstr(NULL,"la","$a0","_true",NULL));
-			AppendSeq(code, GenInstr(NULL, "b", end, NULL, NULL));
-			AppendSeq(code, GenInstr(els, NULL, NULL, NULL, NULL));
-			AppendSeq(code, GenInstr(NULL,"la","$a0","_false",NULL));
-			AppendSeq(code, GenInstr(end, NULL, NULL, NULL, NULL));
-			AppendSeq(code, GenInstr(NULL, "li", "$v0", Imm(4), NULL));
-			AppendSeq(code, GenInstr(NULL, "syscall", NULL, NULL, NULL));
-			free(els);
-			free(end);
+		expr = list->Expr;
+		instr = AppendSeq(instr, list->Expr->Instrs);
+
+		if(expr->Attr == NULL) {
+			AppendSeq(instr, doPrintInt(expr->Reg));
 		} else {
-			writeIndicator(getCurrentColumnNum());
-			writeMessage("Unknown type, what are you trying to print?");
+			switch(expr->Attr->type) {
+				case INT:
+					AppendSeq(instr, doPrintInt(expr->Reg));
+				break;
+
+				case BOOL:
+					AppendSeq(instr, doPrintBool(expr->Reg));
+				break;
+				
+				default:
+					writeIndicator(getCurrentColumnNum());
+ 					writeMessage("Unknown type, what are you trying to print?");
+			}
 		}
+
+		if(list->Next) {
+			AppendSeq(instr, GenInstr(NULL, "la", "$a0", "_space", NULL));
+			AppendSeq(instr, GenInstr(NULL, "li", "$v0", Imm(4), NULL));
+			AppendSeq(instr, GenInstr(NULL, "syscall", NULL, NULL, NULL));
+		}
+
+		ReleaseTmpReg(list->Expr->Reg);
+		free(list->Expr);
 		list = list->Next;
 	}
-	return code;
+
+	free(list);
+	return instr;
 }
 
 struct IdList * createIdListItem(char * id) {
@@ -462,7 +453,7 @@ struct InstrSeq * doPrintSpaces(struct ExprRes * Expr) {
 	return code;
 }
 
-struct InstrSeq * doPrintString(char * string) {
+struct InstrSeq * doPrintString(char* string) {
 	int i = 0;
 	char *name = malloc(strlen(string) + 2);
 	name[0] = '_';
@@ -479,6 +470,29 @@ struct InstrSeq * doPrintString(char * string) {
 
 	free(string);
 	return seq;
+}
+
+struct InstrSeq * doPrintInt(int reg) {
+	struct InstrSeq * instr = GenInstr(NULL, "li", "$v0", Imm(1), NULL);
+	AppendSeq(instr, GenInstr(NULL, "move", "$a0", TmpRegName(reg), NULL));
+	AppendSeq(instr, GenInstr(NULL, "syscall", NULL, NULL, NULL));
+	return instr;
+}
+
+struct InstrSeq * doPrintBool(int reg) {
+	char* els = GenLabel();
+	char* end = GenLabel();
+	struct InstrSeq * instr = GenInstr(NULL, "beq", TmpRegName(reg), "$zero", els);
+	AppendSeq(instr, GenInstr(NULL, "la", "$a0", "_true", NULL));
+	AppendSeq(instr, GenInstr(NULL, "j", end, NULL, NULL));
+	AppendSeq(instr, GenInstr(els, NULL, NULL, NULL, NULL));
+	AppendSeq(instr, GenInstr(NULL, "la", "$a0", "_false", NULL));
+	AppendSeq(instr, GenInstr(end, NULL, NULL, NULL, NULL));
+	AppendSeq(instr, GenInstr(NULL, "li", "$v0", Imm(4), NULL));
+	AppendSeq(instr, GenInstr(NULL, "syscall", NULL, NULL, NULL));
+	free(els);
+	free(end);
+	return instr;
 }
 
 struct ExprRes * doEq(struct ExprRes * Res1,  struct ExprRes * Res2) {
@@ -684,6 +698,7 @@ void Finish(struct InstrSeq *Code)
 		string[strlen(string)] = '\"';
 		AppendSeq(code, GenInstr(name, ".asciiz", string, NULL, NULL));
 		hasMore = nextEntry(printstrings);
+		free(string);
 	}
 
  	hasMore = startIterator(table);
@@ -696,7 +711,8 @@ void Finish(struct InstrSeq *Code)
 		}
     	hasMore = nextEntry(table);
  	}
-  
+	printf("\n [<>][<>][<>] FINAL CODE SEQ [<>][<>][<>] \n");
+	printSeq(code);
   	WriteSeq(code);
   
   	return;
