@@ -103,7 +103,7 @@ Stmt          : IF '(' iExpr ')' '{' StmtSeq '}' ELSE '{' StmtSeq '}'   { $$ = d
 Stmt          : WHILE '(' iExpr ')' '{' StmtSeq '}'                     { $$ = doWhile($3, $6); };
 ExprList      : ExprListItem                                            { $$ = $1; };
 ExprList      : ExprListItem ',' ExprList                               { $$ = addToExprList($3, $1); };
-ExprListItem  : iExpr                                                   { $$ = getExprListItem($1); };
+ExprListItem  : iExpr                                                   { $$ = createExprListItem($1); };
 iExpr         : iExpr OR BExpr                                          { $$ = doOr($1, $3); };
 iExpr         : BExpr                                                   { $$ = $1; };
 BExpr         : BExpr AND EqExpr                                        { $$ = doAnd($1, $3); };
@@ -137,7 +137,7 @@ Factor        : TRUE                                                    { $$ = d
 Factor        : FALSE                                                   { $$ = doBoolLit(0); };
 IdList        : IdListItem                                              { $$ = $1; };
 IdList        : IdListItem ',' IdList                                   { $$ = addToIdList($3, $1); };
-IdListItem    : Id                                                      { $$ = getIdListItem($1); };
+IdListItem    : Id                                                      { $$ = createIdListItem($1); };
 Id			      : Ident	  								                                { $$ = strdup(yytext); };
 String        : StringLit                                               { $$ = doStringLit(yytext); };
  

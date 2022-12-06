@@ -329,7 +329,7 @@ struct InstrSeq * doPrint(struct ExprRes * Expr) {
   	return code;
 }
 
-struct ExprList * getExprListItem(struct ExprRes * Res) {
+struct ExprList * createExprListItem(struct ExprRes * Res) {
 	struct ExprList * listItem = (struct ExprList*) malloc(sizeof(struct ExprList));
 	listItem->Expr = Res;
 	listItem->Next = NULL;
@@ -384,7 +384,7 @@ struct InstrSeq * doIOPrint(struct ExprList * list) {
 	return code;
 }
 
-struct IdList * getIdListItem(char * id) {
+struct IdList * createIdListItem(char * id) {
 	if(!findName(table, id)) {
 		writeIndicator(getCurrentColumnNum());
 		writeMessage("must declare variables");
