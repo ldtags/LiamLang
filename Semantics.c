@@ -35,34 +35,6 @@ char * doStringLit(char * string) {
 	return strdup(string);
 }
 
-struct IdList * getIdListItem(char * id) {
-	if(!findName(table, id)) {
-		writeIndicator(getCurrentColumnNum());
-		writeMessage("must declare variables");
-	}
-	struct IdList * listItem = (struct IdList*) malloc(sizeof(struct IdList));
-	listItem->Entry = table->current;
-	listItem->Next = NULL;
-	return listItem;
-}
-
-struct IdList * addToIdList(struct IdList * list, struct IdList * listItem) {
-	listItem->Next = list;
-	return listItem;
-}
-
-struct ExprList * getExprListItem(struct ExprRes * Res) {
-	struct ExprList * listItem = (struct ExprList*) malloc(sizeof(struct ExprList));
-	listItem->Expr = Res;
-	listItem->Next = NULL;
-	return listItem;
-}
-
-struct ExprList * addToExprList(struct ExprList * list, struct ExprList * listItem) {
-	listItem->Next = list;
-	return listItem;
-}
-
 int idChar(char c) {
 	return c > -1 && c < 10 || 
 		   c > 64 && c < 91 || 
@@ -357,6 +329,18 @@ struct InstrSeq * doPrint(struct ExprRes * Expr) {
   	return code;
 }
 
+struct ExprList * getExprListItem(struct ExprRes * Res) {
+	struct ExprList * listItem = (struct ExprList*) malloc(sizeof(struct ExprList));
+	listItem->Expr = Res;
+	listItem->Next = NULL;
+	return listItem;
+}
+
+struct ExprList * addToExprList(struct ExprList * list, struct ExprList * listItem) {
+	listItem->Next = list;
+	return listItem;
+}
+
 struct InstrSeq * doIOPrint(struct ExprList * list) {
 	struct InstrSeq * code = (struct InstrSeq*) malloc(sizeof(struct InstrSeq));
 	struct ExprRes * res;
@@ -398,6 +382,22 @@ struct InstrSeq * doIOPrint(struct ExprList * list) {
 		list = list->Next;
 	}
 	return code;
+}
+
+struct IdList * getIdListItem(char * id) {
+	if(!findName(table, id)) {
+		writeIndicator(getCurrentColumnNum());
+		writeMessage("must declare variables");
+	}
+	struct IdList * listItem = (struct IdList*) malloc(sizeof(struct IdList));
+	listItem->Entry = table->current;
+	listItem->Next = NULL;
+	return listItem;
+}
+
+struct IdList * addToIdList(struct IdList * list, struct IdList * listItem) {
+	listItem->Next = list;
+	return listItem;
 }
 
 struct InstrSeq * doIORead(struct IdList * list) {
