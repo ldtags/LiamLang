@@ -335,7 +335,6 @@ struct ExprList * addToExprList(struct ExprList * list, struct ExprList * listIt
 struct InstrSeq * doIOPrint(struct ExprList * list) {
 	struct InstrSeq * instr = NULL;
 	struct ExprRes * expr;
-	struct Attribute * attr;
 	int type;
 
 	while(list != NULL) {
