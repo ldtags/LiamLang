@@ -21,6 +21,7 @@ while                                                                 {return WH
 int					                                                          {return Int;}
 bool                                                                  {return Bool;}
 print                                                                 {return Print;}
+println                                                               {return Println;}
 printlines                                                            {return WriteLines;}
 printspaces                                                           {return WriteSpaces;}
 printstring                                                           {return WriteString;}       

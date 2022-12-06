@@ -3,10 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-int hash(SymTab *table, char *name);
-void printTable(SymTab *table);
-SymEntry * createSymEntry(char *name);
-
 SymTab * createSymTab(int size) {
     SymTab *table = malloc(sizeof(SymTab));
     if(table == NULL)
@@ -148,6 +144,19 @@ int nextEntry(SymTab *table) {
 
     // all entries have been visited by the iterator
     return 0;
+}
+
+void printTable(SymTab *table) {
+    printf("{");
+    int hasMore = startIterator(table);
+    while(hasMore) {
+        printf("%s", getCurrentName(table));
+        hasMore = nextEntry(table);
+        if(hasMore) {
+            printf(", ");
+        }
+    }
+    printf("}\n");
 }
 
 // Iterates through the name and creates a number based off of the ascii value of each

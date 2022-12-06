@@ -32,6 +32,12 @@ struct ExprRes * doBoolLit(int val) {
 }
 
 char * doStringLit(char * string) {
+	// int i = 1;
+	// while(string[i] != '"') {
+	// 	string[i - 1] = string[i];
+	// 	i++;
+	// }
+	// string[i - 1] = '\0';
 	return strdup(string);
 }
 
@@ -314,186 +320,6 @@ struct InstrSeq * doIncr(char * name) {
 	return seq;
 }
 
-struct InstrSeq * doPrintln(struct ExprList * list) { 
-  	struct InstrSeq * code = doIOPrint(list);
-
-  	return code;
-}
-
-struct ExprList * createExprListItem(struct ExprRes * Res) {
-	struct ExprList * listItem = (struct ExprList*) malloc(sizeof(struct ExprList));
-	listItem->Expr = Res;
-	listItem->Next = NULL;
-	return listItem;
-}
-
-struct ExprList * addToExprList(struct ExprList * list, struct ExprList * listItem) {
-	listItem->Next = list;
-	return listItem;
-}
-
-struct InstrSeq * doIOPrint(struct ExprList * list) {
-	struct InstrSeq * instr = NULL;
-	struct ExprRes * expr;
-	int type;
-
-	while(list != NULL) {
-		expr = list->Expr;
-		instr = AppendSeq(instr, list->Expr->Instrs);
-
-		if(expr->Attr == NULL) {
-			AppendSeq(instr, doPrintInt(expr->Reg));
-		} else {
-			switch(expr->Attr->type) {
-				case INT:
-					AppendSeq(instr, doPrintInt(expr->Reg));
-				break;
-
-				case BOOL:
-					AppendSeq(instr, doPrintBool(expr->Reg));
-				break;
-				
-				default:
-					writeIndicator(getCurrentColumnNum());
- 					writeMessage("Unknown type, what are you trying to print?");
-			}
-		}
-
-		if(list->Next) {
-			AppendSeq(instr, GenInstr(NULL, "la", "$a0", "_space", NULL));
-			AppendSeq(instr, GenInstr(NULL, "li", "$v0", Imm(4), NULL));
-			AppendSeq(instr, GenInstr(NULL, "syscall", NULL, NULL, NULL));
-		}
-
-		ReleaseTmpReg(list->Expr->Reg);
-		free(list->Expr);
-		list = list->Next;
-	}
-
-	free(list);
-	return instr;
-}
-
-struct IdList * createIdListItem(char * id) {
-	if(!findName(table, id)) {
-		writeIndicator(getCurrentColumnNum());
-		writeMessage("must declare variables");
-	}
-	struct IdList * listItem = (struct IdList*) malloc(sizeof(struct IdList));
-	listItem->Entry = table->current;
-	listItem->Next = NULL;
-	return listItem;
-}
-
-struct IdList * addToIdList(struct IdList * list, struct IdList * listItem) {
-	listItem->Next = list;
-	return listItem;
-}
-
-struct InstrSeq * doIORead(struct IdList * list) {
-	struct InstrSeq * code;
-	char *name;
-
-	while(list != NULL) {
-		name = list->Entry->name;
-		code = GenInstr(NULL, "li", "$v0", Imm(5), NULL);
-		AppendSeq(code, GenInstr(NULL, "syscall", NULL, NULL, NULL));
-		AppendSeq(code, GenInstr(NULL, "sw", "$v0", name, NULL));
-	}
-
-	return code;
-}
-
-struct InstrSeq * doPrintLines(struct ExprRes * Expr) {
-	struct InstrSeq * code = Expr->Instrs;
-	char * loop = GenLabel();
-	char * done = GenLabel();
-	int reg = AvailTmpReg();
-
-	AppendSeq(code, GenInstr(NULL, "li", TmpRegName(reg), Imm(0), NULL));
-	AppendSeq(code, GenInstr(loop, NULL, NULL, NULL, NULL));
-	AppendSeq(code, GenInstr(NULL, "beq", TmpRegName(reg), TmpRegName(Expr->Reg), done));
-	AppendSeq(code, GenInstr(NULL, "li", "$v0", "4", NULL));
-    AppendSeq(code, GenInstr(NULL, "la", "$a0", "_nl", NULL));
-    AppendSeq(code, GenInstr(NULL, "syscall", NULL, NULL, NULL));
-	AppendSeq(code, GenInstr(NULL, "addi", TmpRegName(reg), TmpRegName(reg), Imm(1)));
-	AppendSeq(code, GenInstr(NULL, "b", loop, NULL, NULL));
-	AppendSeq(code, GenInstr(done, NULL, NULL, NULL, NULL));
-
-	ReleaseTmpReg(reg);
-	ReleaseTmpReg(Expr->Reg);
-	free(Expr);
-	free(loop);
-	free(done);
-	return code;
-}
-
-struct InstrSeq * doPrintSpaces(struct ExprRes * Expr) {
-	struct InstrSeq * code = Expr->Instrs;
-	char * loop = GenLabel();
-	char * done = GenLabel();
-	int reg = AvailTmpReg();
-
-	AppendSeq(code, GenInstr(NULL, "li", TmpRegName(reg), Imm(0), NULL));
-	AppendSeq(code, GenInstr(loop, NULL, NULL, NULL, NULL));
-	AppendSeq(code, GenInstr(NULL, "beq", TmpRegName(reg), TmpRegName(Expr->Reg), done));
-	AppendSeq(code, GenInstr(NULL, "la", "$a0", "_space", NULL));
-	AppendSeq(code, GenInstr(NULL, "li", "$v0", Imm(4), NULL));
-	AppendSeq(code, GenInstr(NULL, "syscall", NULL, NULL, NULL));
-	AppendSeq(code, GenInstr(NULL, "addi", TmpRegName(reg), TmpRegName(reg), Imm(1)));
-	AppendSeq(code, GenInstr(NULL, "b", loop, NULL, NULL));
-	AppendSeq(code, GenInstr(done, NULL, NULL, NULL, NULL));
-
-	ReleaseTmpReg(reg);
-	ReleaseTmpReg(Expr->Reg);
-	free(Expr);
-	free(loop);
-	free(done);
-	return code;
-}
-
-struct InstrSeq * doPrintString(char* string) {
-	int i = 0;
-	char *name = malloc(strlen(string) + 2);
-	name[0] = '_';
-	while(i < strlen(string)) {
-		name[i+1] = string[i];
-		i++;
-	}
-	name[i+1] = '\0';
-	enterName(printstrings, name);
-
-	struct InstrSeq * seq = GenInstr(NULL, "li", "$v0", Imm(4), NULL);
-	AppendSeq(seq, GenInstr(NULL, "la", "$a0", name, NULL));
-	AppendSeq(seq, GenInstr(NULL, "syscall", NULL, NULL, NULL));
-
-	free(string);
-	return seq;
-}
-
-struct InstrSeq * doPrintInt(int reg) {
-	struct InstrSeq * instr = GenInstr(NULL, "li", "$v0", Imm(1), NULL);
-	AppendSeq(instr, GenInstr(NULL, "move", "$a0", TmpRegName(reg), NULL));
-	AppendSeq(instr, GenInstr(NULL, "syscall", NULL, NULL, NULL));
-	return instr;
-}
-
-struct InstrSeq * doPrintBool(int reg) {
-	char* els = GenLabel();
-	char* end = GenLabel();
-	struct InstrSeq * instr = GenInstr(NULL, "beq", TmpRegName(reg), "$zero", els);
-	AppendSeq(instr, GenInstr(NULL, "la", "$a0", "_true", NULL));
-	AppendSeq(instr, GenInstr(NULL, "j", end, NULL, NULL));
-	AppendSeq(instr, GenInstr(els, NULL, NULL, NULL, NULL));
-	AppendSeq(instr, GenInstr(NULL, "la", "$a0", "_false", NULL));
-	AppendSeq(instr, GenInstr(end, NULL, NULL, NULL, NULL));
-	AppendSeq(instr, GenInstr(NULL, "li", "$v0", Imm(4), NULL));
-	AppendSeq(instr, GenInstr(NULL, "syscall", NULL, NULL, NULL));
-	free(els);
-	free(end);
-	return instr;
-}
-
 struct ExprRes * doEq(struct ExprRes * Res1,  struct ExprRes * Res2) {
     return GEQ(Res1, Res2, "seq");
 }
@@ -650,6 +476,181 @@ extern struct InstrSeq * doIf(struct ExprRes *res1, struct ExprRes *res2, struct
 
 */
 
+struct ExprList * createExprListItem(struct ExprRes * Res) {
+	struct ExprList * listItem = (struct ExprList*) malloc(sizeof(struct ExprList));
+	listItem->Expr = Res;
+	listItem->Next = NULL;
+	return listItem;
+}
+
+struct ExprList * addToExprList(struct ExprList * list, struct ExprList * listItem) {
+	listItem->Next = list;
+	return listItem;
+}
+
+struct InstrSeq * doIOPrint(struct ExprList * list) {
+	struct InstrSeq * instr = NULL;
+	struct ExprRes * expr;
+	int type;
+
+	while(list != NULL) {
+		expr = list->Expr;
+		instr = AppendSeq(instr, list->Expr->Instrs);
+
+		if(expr->Attr == NULL) {
+			AppendSeq(instr, doPrintInt(expr->Reg));
+		} else {
+			switch(expr->Attr->type) {
+				case INT:
+					AppendSeq(instr, doPrintInt(expr->Reg));
+				break;
+
+				case BOOL:
+					AppendSeq(instr, doPrintBool(expr->Reg));
+				break;
+				
+				default:
+					writeIndicator(getCurrentColumnNum());
+ 					writeMessage("Unknown type, what are you trying to print?");
+			}
+		}
+
+		if(list->Next) {
+			AppendSeq(instr, GenInstr(NULL, "la", "$a0", "_space", NULL));
+			AppendSeq(instr, GenInstr(NULL, "li", "$v0", Imm(4), NULL));
+			AppendSeq(instr, GenInstr(NULL, "syscall", NULL, NULL, NULL));
+		}
+
+		ReleaseTmpReg(list->Expr->Reg);
+		free(list->Expr);
+		list = list->Next;
+	}
+
+	free(list);
+	return instr;
+}
+
+struct InstrSeq * doPrintln(struct ExprList * list) { 
+  	struct InstrSeq * instr = doIOPrint(list);
+	AppendSeq(instr, GenInstr(NULL, "la", "$a0", "_space", NULL));
+	AppendSeq(instr, GenInstr(NULL, "li", "$v0", Imm(4), NULL));
+	AppendSeq(instr, GenInstr(NULL, "syscall", NULL, NULL, NULL));
+  	return instr;
+}
+
+struct IdList * createIdListItem(char * id) {
+	if(!findName(table, id)) {
+		writeIndicator(getCurrentColumnNum());
+		writeMessage("must declare variables");
+	}
+	struct IdList * listItem = (struct IdList*) malloc(sizeof(struct IdList));
+	listItem->Entry = table->current;
+	listItem->Next = NULL;
+	return listItem;
+}
+
+struct IdList * addToIdList(struct IdList * list, struct IdList * listItem) {
+	listItem->Next = list;
+	return listItem;
+}
+
+struct InstrSeq * doIORead(struct IdList * list) {
+	struct InstrSeq * code;
+	char *name;
+
+	while(list != NULL) {
+		name = list->Entry->name;
+		code = GenInstr(NULL, "li", "$v0", Imm(5), NULL);
+		AppendSeq(code, GenInstr(NULL, "syscall", NULL, NULL, NULL));
+		AppendSeq(code, GenInstr(NULL, "sw", "$v0", name, NULL));
+	}
+
+	return code;
+}
+
+struct InstrSeq * doPrintLines(struct ExprRes * Expr) {
+	struct InstrSeq * code = Expr->Instrs;
+	char * loop = GenLabel();
+	char * done = GenLabel();
+	int reg = AvailTmpReg();
+
+	AppendSeq(code, GenInstr(NULL, "li", TmpRegName(reg), Imm(0), NULL));
+	AppendSeq(code, GenInstr(loop, NULL, NULL, NULL, NULL));
+	AppendSeq(code, GenInstr(NULL, "beq", TmpRegName(reg), TmpRegName(Expr->Reg), done));
+	AppendSeq(code, GenInstr(NULL, "li", "$v0", "4", NULL));
+    AppendSeq(code, GenInstr(NULL, "la", "$a0", "_nl", NULL));
+    AppendSeq(code, GenInstr(NULL, "syscall", NULL, NULL, NULL));
+	AppendSeq(code, GenInstr(NULL, "addi", TmpRegName(reg), TmpRegName(reg), Imm(1)));
+	AppendSeq(code, GenInstr(NULL, "b", loop, NULL, NULL));
+	AppendSeq(code, GenInstr(done, NULL, NULL, NULL, NULL));
+
+	ReleaseTmpReg(reg);
+	ReleaseTmpReg(Expr->Reg);
+	free(Expr);
+	free(loop);
+	free(done);
+	return code;
+}
+
+struct InstrSeq * doPrintSpaces(struct ExprRes * Expr) {
+	struct InstrSeq * code = Expr->Instrs;
+	char * loop = GenLabel();
+	char * done = GenLabel();
+	int reg = AvailTmpReg();
+
+	AppendSeq(code, GenInstr(NULL, "li", TmpRegName(reg), Imm(0), NULL));
+	AppendSeq(code, GenInstr(loop, NULL, NULL, NULL, NULL));
+	AppendSeq(code, GenInstr(NULL, "beq", TmpRegName(reg), TmpRegName(Expr->Reg), done));
+	AppendSeq(code, GenInstr(NULL, "la", "$a0", "_space", NULL));
+	AppendSeq(code, GenInstr(NULL, "li", "$v0", Imm(4), NULL));
+	AppendSeq(code, GenInstr(NULL, "syscall", NULL, NULL, NULL));
+	AppendSeq(code, GenInstr(NULL, "addi", TmpRegName(reg), TmpRegName(reg), Imm(1)));
+	AppendSeq(code, GenInstr(NULL, "b", loop, NULL, NULL));
+	AppendSeq(code, GenInstr(done, NULL, NULL, NULL, NULL));
+
+	ReleaseTmpReg(reg);
+	ReleaseTmpReg(Expr->Reg);
+	free(Expr);
+	free(loop);
+	free(done);
+	return code;
+}
+
+struct InstrSeq * doPrintString(char *string) {
+	char *label = GenLabel();
+	enterName(printstrings, label);
+	setCurrentAttr(printstrings, string);
+
+	struct InstrSeq * seq = GenInstr(NULL, "li", "$v0", Imm(4), NULL);
+	AppendSeq(seq, GenInstr(NULL, "la", "$a0", label, NULL));
+	AppendSeq(seq, GenInstr(NULL, "syscall", NULL, NULL, NULL));
+	
+	return seq;
+}
+
+struct InstrSeq * doPrintInt(int reg) {
+	struct InstrSeq * instr = GenInstr(NULL, "li", "$v0", Imm(1), NULL);
+	AppendSeq(instr, GenInstr(NULL, "move", "$a0", TmpRegName(reg), NULL));
+	AppendSeq(instr, GenInstr(NULL, "syscall", NULL, NULL, NULL));
+	return instr;
+}
+
+struct InstrSeq * doPrintBool(int reg) {
+	char* els = GenLabel();
+	char* end = GenLabel();
+	struct InstrSeq * instr = GenInstr(NULL, "beq", TmpRegName(reg), "$zero", els);
+	AppendSeq(instr, GenInstr(NULL, "la", "$a0", "_true", NULL));
+	AppendSeq(instr, GenInstr(NULL, "j", end, NULL, NULL));
+	AppendSeq(instr, GenInstr(els, NULL, NULL, NULL, NULL));
+	AppendSeq(instr, GenInstr(NULL, "la", "$a0", "_false", NULL));
+	AppendSeq(instr, GenInstr(end, NULL, NULL, NULL, NULL));
+	AppendSeq(instr, GenInstr(NULL, "li", "$v0", Imm(4), NULL));
+	AppendSeq(instr, GenInstr(NULL, "syscall", NULL, NULL, NULL));
+	free(els);
+	free(end);
+	return instr;
+}
+
 int size(enum Type type) {
   	switch(type) {
   	  	case INT:
@@ -664,12 +665,11 @@ int size(enum Type type) {
 }
 
 
-void Finish(struct InstrSeq *Code)
+void Finish(struct InstrSeq * Code)
 { 	
-	struct InstrSeq *code;
+	struct InstrSeq * code;
   	//struct SymEntry *entry;
-    int hasMore, i;
-	char *string = "_";
+    int hasMore;
 	char *name;
   	struct Attribute * attr;
 
@@ -684,20 +684,15 @@ void Finish(struct InstrSeq *Code)
   	AppendSeq(code,GenInstr(NULL,".data",NULL,NULL,NULL));
   	AppendSeq(code,GenInstr(NULL,".align","4",NULL,NULL));
   	AppendSeq(code,GenInstr("_nl",".asciiz","\"\\n\"",NULL,NULL));
+	AppendSeq(code,GenInstr("_true",".asciiz","\"true\"",NULL,NULL));
+	AppendSeq(code,GenInstr("_false",".asciiz","\"false\"",NULL,NULL));
 	AppendSeq(code,GenInstr("_space",".asciiz","\" \"",NULL,NULL));
-
-	enterName(printstrings, "_true\0");
-	enterName(printstrings, "_false\0");
 
 	hasMore = startIterator(printstrings);
 	while(hasMore) {
 		name = getCurrentName(printstrings);
-		string = strdup(name);
-		string[0] = '\"';
-		string[strlen(string)] = '\"';
-		AppendSeq(code, GenInstr(name, ".asciiz", string, NULL, NULL));
+		AppendSeq(code, GenInstr(name, ".asciiz", (char*) getCurrentAttr(printstrings), NULL, NULL));
 		hasMore = nextEntry(printstrings);
-		free(string);
 	}
 
  	hasMore = startIterator(table);
@@ -710,8 +705,7 @@ void Finish(struct InstrSeq *Code)
 		}
     	hasMore = nextEntry(table);
  	}
-	printf("\n [<>][<>][<>] FINAL CODE SEQ [<>][<>][<>] \n");
-	printSeq(code);
+
   	WriteSeq(code);
   
   	return;

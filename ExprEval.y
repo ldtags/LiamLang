@@ -56,7 +56,7 @@ extern SymTab *table;
 %token StringLit
 %token Int
 %token Print
-%token Write
+%token Println
 %token WriteLines
 %token WriteSpaces
 %token WriteString
@@ -89,6 +89,7 @@ ArrFactor     : IntLit									                                { $$ = doIntLit(y
 StmtSeq 	    :	Stmt StmtSeq								                            { $$ = AppendSeq($1, $2); };
 StmtSeq		    :											                                    { $$ = NULL; };
 Stmt          : Print '(' ExprList ')' ';'                              { $$ = doIOPrint($3); };
+Stmt          : Println '(' ExprList ')' ';'                            { $$ = doPrintln($3); };
 Stmt          : Read '(' IdList ')' ';'                                 { $$ = doIORead($3); };
 Stmt          : WriteLines '(' iExpr ')' ';'                            { $$ = doPrintLines($3); };
 Stmt          : WriteSpaces '(' iExpr ')' ';'                           { $$ = doPrintSpaces($3); };

@@ -34,6 +34,8 @@ typedef struct {
 */
 SymTab * createSymTab(int size);
 
+SymEntry * createSymEntry(char *name);
+
 //recover space created by the symbol table functions
 //no functions should use the symbol table after it is destroyed
 void destroySymTab(SymTab *table);
@@ -77,3 +79,7 @@ int startIterator(SymTab *table);
  otherwise set current to the "next" (name, attribute) pair and return 1
 */
 int nextEntry(SymTab *table);
+
+void printTable(SymTab *table);
+
+int hash(SymTab *table, char *name);
