@@ -555,16 +555,18 @@ struct IdList * addToIdList(struct IdList * list, struct IdList * listItem) {
 }
 
 struct InstrSeq * doIORead(struct IdList * list) {
-	struct InstrSeq * code;
+	struct InstrSeq * code = NULL;
 	char *name;
 
 	while(list != NULL) {
 		name = list->Entry->name;
-		code = GenInstr(NULL, "li", "$v0", Imm(5), NULL);
+		code = AppendSeq(code, GenInstr(NULL, "li", "$v0", Imm(5), NULL));
 		AppendSeq(code, GenInstr(NULL, "syscall", NULL, NULL, NULL));
 		AppendSeq(code, GenInstr(NULL, "sw", "$v0", name, NULL));
+		list = list->Next;
 	}
 
+	free(list);
 	return code;
 }
 
