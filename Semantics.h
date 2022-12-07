@@ -6,11 +6,6 @@
 /* Semantic Records */
 enum Type {INT, BOOL, STRING};
 
-struct IdList {
-  struct SymEntry * Entry;
-  struct IdList * Next;
-};
-
 typedef struct Attribute {
   enum Type type;
   int size;
@@ -28,14 +23,19 @@ struct ExprList {
 	struct ExprList * Next;
 };
 
+struct IdList {
+  struct SymEntry * Entry;
+  struct ExprRes * OffExpr;
+  struct IdList * Next;
+};
+
 
 /* Semantics Actions */
-extern char             *  doStringLit(char * string);
 extern struct ExprRes   *  doIntLit(char * digits);
 extern struct ExprRes   *  doBoolLit(int val);
-extern struct ExprRes   *  doRval(char * name);
-extern struct ExprRes   *  doArrVal(char * name, struct ExprRes * offExpr);
-extern struct ExprRes   *  do2DVal(char * name, struct ExprRes * offExpr1, struct ExprRes * offExpr2);
+extern struct ExprRes   *  doLoadVal(char * name);
+extern struct ExprRes   *  doLoadArrVal(char * name, struct ExprRes * offExpr);
+extern struct ExprRes   *  doLoad2DArrVal(char * name, struct ExprRes * offExpr1, struct ExprRes * offExpr2);
 extern struct InstrSeq  *  doAssign(char * name, struct ExprRes * Res1);
 extern struct InstrSeq  *  doArrAssign(char * name, struct ExprRes * offExpr, struct ExprRes * valExpr);
 extern struct InstrSeq  *  do2DAssign(char * name, struct ExprRes * offExpr1, struct ExprRes * offExpr2, struct ExprRes * valExpr);
@@ -65,7 +65,7 @@ extern struct ExprList  *  createExprListItem(struct ExprRes * Res);
 extern struct ExprList  *  addToExprList(struct ExprList * list, struct ExprList * listItem);
 extern struct InstrSeq  *  doIOPrint(struct ExprList * list);
 extern struct InstrSeq  *  doPrintln(struct ExprList * list);
-extern struct IdList    *  createIdListItem(char * id);
+extern struct IdList    *  createIdListItem(char * id, struct ExprRes * offExpr);
 extern struct IdList    *  addToIdList(struct IdList * list, struct IdList * listItem);
 extern struct InstrSeq  *  doIORead(struct IdList * list);
 extern struct InstrSeq  *  doPrintLines(struct ExprRes * Expr);

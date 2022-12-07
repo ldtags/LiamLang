@@ -13,7 +13,7 @@
 #include "IOMngr.h"
 
 extern SymTab *table;
-extern SymTab *printstrings;
+extern SymTab *stringTable;
 
 /* Semantics support routines */
 
@@ -31,23 +31,13 @@ struct ExprRes * doBoolLit(int val) {
 	return Res;
 }
 
-char * doStringLit(char * string) {
-	// int i = 1;
-	// while(string[i] != '"') {
-	// 	string[i - 1] = string[i];
-	// 	i++;
-	// }
-	// string[i - 1] = '\0';
-	return strdup(string);
-}
-
 int idChar(char c) {
 	return c > -1 && c < 10 || 
 		   c > 64 && c < 91 || 
 		   c > 96 && c < 123;
 }
 
-struct ExprRes * doRval(char * name)  { 
+struct ExprRes * doLoadVal(char * name)  { 
    	if (!findName(table, name)) {
 		writeIndicator(getCurrentColumnNum());
 		writeMessage("Undeclared variable");
@@ -56,12 +46,12 @@ struct ExprRes * doRval(char * name)  {
   	struct ExprRes * res = (struct ExprRes *) malloc(sizeof(struct ExprRes));
   	res->Reg = AvailTmpReg();
 	res->Attr = getCurrentAttr(table);
-  	res->Instrs = GenInstr(NULL,"lw" ,TmpRegName(res->Reg), name, NULL);
+	res->Instrs = GenInstr(NULL,"lw" , TmpRegName(res->Reg), name, NULL);
 
   	return res;
 }
 
-struct ExprRes * doArrVal(char * name, struct ExprRes * offExpr) {
+struct ExprRes * doLoadArrVal(char * name, struct ExprRes * offExpr) {
 	if(!findName(table, name)) {
 		writeIndicator(getCurrentColumnNum());
 		writeMessage("Undeclared array");
@@ -81,7 +71,7 @@ struct ExprRes * doArrVal(char * name, struct ExprRes * offExpr) {
 	return Res;
 }
 
-struct ExprRes * do2DVal(char * name, struct ExprRes * offExpr1, struct ExprRes * offExpr2) {
+struct ExprRes * doLoad2DArrVal(char * name, struct ExprRes * offExpr1, struct ExprRes * offExpr2) {
 	if(!findName(table, name)) {
 		writeIndicator(getCurrentColumnNum());
 		writeMessage("Undeclared array");
@@ -253,10 +243,7 @@ struct ExprRes * doMod(struct ExprRes * Res1, struct ExprRes * Res2) {
 	int reg = AvailTmpReg();
 
 	AppendSeq(Res1->Instrs, Res2->Instrs);
-	AppendSeq(Res1->Instrs, GenInstr(NULL, "div", 
-											TmpRegName(reg), 
-											TmpRegName(Res1->Reg), 
-											TmpRegName(Res2->Reg)));
+	AppendSeq(Res1->Instrs, GenInstr(NULL, "div", TmpRegName(reg), TmpRegName(Res1->Reg), TmpRegName(Res2->Reg)));
 	AppendSeq(Res1->Instrs, GenInstr(NULL, "mfhi", TmpRegName(reg), NULL, NULL));
 
 	ReleaseTmpReg(Res1->Reg);
@@ -296,10 +283,7 @@ struct ExprRes * doUMin(struct ExprRes * Res) {
 	int reg = AvailTmpReg();
 	int temp = AvailTmpReg();
 	AppendSeq(Res->Instrs, GenInstr(NULL, "addi", TmpRegName(temp), "$zero", "-1"));
-	AppendSeq(Res->Instrs, GenInstr(NULL, "mul",
-										   TmpRegName(reg),
-										   TmpRegName(Res->Reg),
-										   TmpRegName(temp)));
+	AppendSeq(Res->Instrs, GenInstr(NULL, "mul", TmpRegName(reg), TmpRegName(Res->Reg), TmpRegName(temp)));
 	ReleaseTmpReg(Res->Reg);
 	ReleaseTmpReg(temp);
 	Res->Reg = reg;
@@ -345,17 +329,16 @@ struct ExprRes * doGTE(struct ExprRes * Res1, struct ExprRes * Res2) {
 }
 
 struct ExprRes * GEQ(struct ExprRes * Res1, struct ExprRes * Res2, char * OpCode) {
-	int reg = AvailTmpReg();
 	struct ExprRes * Res = (struct ExprRes*) malloc(sizeof(struct ExprRes));
 
 	AppendSeq(Res1->Instrs, Res2->Instrs);
-	AppendSeq(Res1->Instrs, GenInstr(NULL, OpCode, TmpRegName(reg), TmpRegName(Res1->Reg), TmpRegName(Res2->Reg)));
-
-    Res->Reg = reg;
-	Res->Instrs = Res1->Instrs;
-    ReleaseTmpReg(Res->Reg);
+	AppendSeq(Res1->Instrs, GenInstr(NULL, OpCode, 
+										   TmpRegName(Res->Reg), 
+										   TmpRegName(Res1->Reg), 
+										   TmpRegName(Res2->Reg)));
 	ReleaseTmpReg(Res1->Reg);
   	ReleaseTmpReg(Res2->Reg);
+	Res->Instrs = Res1->Instrs;
 	free(Res1);
 	free(Res2);
 	return Res;
@@ -538,13 +521,18 @@ struct InstrSeq * doPrintln(struct ExprList * list) {
   	return instr;
 }
 
-struct IdList * createIdListItem(char * id) {
+struct IdList * createIdListItem(char * id, struct ExprRes * offExpr) {
 	if(!findName(table, id)) {
 		writeIndicator(getCurrentColumnNum());
 		writeMessage("must declare variables");
 	}
 	struct IdList * listItem = (struct IdList*) malloc(sizeof(struct IdList));
 	listItem->Entry = table->current;
+	if(offExpr) {
+		listItem->OffExpr = offExpr;
+	} else {
+		listItem->OffExpr = NULL;
+	}
 	listItem->Next = NULL;
 	return listItem;
 }
@@ -557,15 +545,28 @@ struct IdList * addToIdList(struct IdList * list, struct IdList * listItem) {
 struct InstrSeq * doIORead(struct IdList * list) {
 	struct InstrSeq * code = NULL;
 	char *name;
+	int reg = AvailTmpReg();
 
 	while(list != NULL) {
+		if(list->OffExpr) { code = AppendSeq(code, list->OffExpr->Instrs); }
 		name = list->Entry->name;
-		code = AppendSeq(code, GenInstr(NULL, "li", "$v0", Imm(5), NULL));
+		code = AppendSeq(code, GenInstr(NULL, "la", TmpRegName(reg), name, NULL));
+		AppendSeq(code, GenInstr(NULL, "li", "$v0", Imm(5), NULL));
 		AppendSeq(code, GenInstr(NULL, "syscall", NULL, NULL, NULL));
-		AppendSeq(code, GenInstr(NULL, "sw", "$v0", name, NULL));
+
+		if(list->OffExpr) {
+			AppendSeq(code, GenInstr(NULL, "sll", TmpRegName(list->OffExpr->Reg), TmpRegName(list->OffExpr->Reg), Imm(2)));
+			AppendSeq(code, GenInstr(NULL, "add", TmpRegName(reg), TmpRegName(reg), TmpRegName(list->OffExpr->Reg)));
+			ReleaseTmpReg(list->OffExpr->Reg);
+		}
+		
+		AppendSeq(code, GenInstr(NULL, "sw", "$v0", RegOff(0, TmpRegName(reg)), NULL));
+
+		free(list->OffExpr);
 		list = list->Next;
 	}
 
+	ReleaseTmpReg(reg);
 	free(list);
 	return code;
 }
@@ -620,8 +621,8 @@ struct InstrSeq * doPrintSpaces(struct ExprRes * Expr) {
 
 struct InstrSeq * doPrintString(char *string) {
 	char *label = GenLabel();
-	enterName(printstrings, label);
-	setCurrentAttr(printstrings, string);
+	enterName(stringTable, label);
+	setCurrentAttr(stringTable, string);
 
 	struct InstrSeq * seq = GenInstr(NULL, "li", "$v0", Imm(4), NULL);
 	AppendSeq(seq, GenInstr(NULL, "la", "$a0", label, NULL));
@@ -690,11 +691,11 @@ void Finish(struct InstrSeq * Code)
 	AppendSeq(code,GenInstr("_false",".asciiz","\"false\"",NULL,NULL));
 	AppendSeq(code,GenInstr("_space",".asciiz","\" \"",NULL,NULL));
 
-	hasMore = startIterator(printstrings);
+	hasMore = startIterator(stringTable);
 	while(hasMore) {
-		name = getCurrentName(printstrings);
-		AppendSeq(code, GenInstr(name, ".asciiz", (char*) getCurrentAttr(printstrings), NULL, NULL));
-		hasMore = nextEntry(printstrings);
+		name = getCurrentName(stringTable);
+		AppendSeq(code, GenInstr(name, ".asciiz", (char*) getCurrentAttr(stringTable), NULL, NULL));
+		hasMore = nextEntry(stringTable);
 	}
 
  	hasMore = startIterator(table);

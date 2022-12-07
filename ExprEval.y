@@ -47,6 +47,7 @@ extern SymTab *table;
 %type <ExprRes> BExpr
 %type <ExprRes> iExpr
 %type <ExprRes> ArrFactor
+%type <ExprRes> OptArr
 %type <InstrSeq> StmtSeq
 %type <InstrSeq> Stmt
 
@@ -127,9 +128,9 @@ Unary         : '!' Unary                                               { $$ = d
 Unary         : Factor                                                  { $$ = $1; };
 Factor        : '(' iExpr ')'                                           { $$ = $2; };
 Factor		    :	IntLit									                                { $$ = doIntLit(yytext); };
-Factor		    :	Id									                                    { $$ = doRval($1); };
-Factor        : Id '[' iExpr ']'																				{ $$ = doArrVal($1, $3); };
-Factor        : Id '[' iExpr ']' '[' iExpr ']'                          { $$ = do2DVal($1, $3, $6); };
+Factor		    :	Id         								                              { $$ = doLoadVal($1); };
+Factor        : Id '[' iExpr ']'																				{ $$ = doLoadArrVal($1, $3); };
+Factor        : Id '[' iExpr ']' '[' iExpr ']'                          { $$ = doLoad2DArrVal($1, $3, $6); };
 Factor        : TRUE                                                    { $$ = doBoolLit(1); };
 Factor        : FALSE                                                   { $$ = doBoolLit(0); };
 ExprList      : ExprListItem                                            { $$ = $1; };
@@ -137,9 +138,12 @@ ExprList      : ExprListItem ',' ExprList                               { $$ = a
 ExprListItem  : iExpr                                                   { $$ = createExprListItem($1); };
 IdList        : IdListItem                                              { $$ = $1; };
 IdList        : IdListItem ',' IdList                                   { $$ = addToIdList($3, $1); };
-IdListItem    : Id                                                      { $$ = createIdListItem($1); };
+IdListItem    : Id OptArr                                               { $$ = createIdListItem($1, $2); };
+OptArr        : '[' iExpr ']'                                           { $$ = $2; };
+OptArr        : '[' iExpr ']' '[' iExpr ']'                             { $$ = doMult($2, $5); };
+OptArr        :                                                         { $$ = NULL; };
 Id			      : Ident	  								                                { $$ = strdup(yytext); };
-String        : StringLit                                               { $$ = doStringLit(yytext); };
+String        : StringLit                                               { $$ = strdup(yytext); };
  
 %%
 
