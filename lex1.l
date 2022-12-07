@@ -30,7 +30,7 @@ true                                                                  {return TR
 false                                                                 {return FALSE;}
 {letter}({letter}|{digit})*	                                          {return Ident;}
 {digit}{digit}*		                                                    {return IntLit;}
-\"(.|\n)*\"                                                           {return StringLit;}
+\".*\"                                                                {return StringLit;}
 \=\=					                                                        {return EQ;}
 \!\=                                                                  {return NEQ;}
 \|\|                                                                  {return OR;}

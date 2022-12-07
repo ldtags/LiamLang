@@ -329,15 +329,17 @@ struct ExprRes * doGTE(struct ExprRes * Res1, struct ExprRes * Res2) {
 }
 
 struct ExprRes * GEQ(struct ExprRes * Res1, struct ExprRes * Res2, char * OpCode) {
+	int reg = AvailTmpReg();
 	struct ExprRes * Res = (struct ExprRes*) malloc(sizeof(struct ExprRes));
 
 	AppendSeq(Res1->Instrs, Res2->Instrs);
 	AppendSeq(Res1->Instrs, GenInstr(NULL, OpCode, 
-										   TmpRegName(Res->Reg), 
+										   TmpRegName(reg), 
 										   TmpRegName(Res1->Reg), 
 										   TmpRegName(Res2->Reg)));
 	ReleaseTmpReg(Res1->Reg);
   	ReleaseTmpReg(Res2->Reg);
+	Res->Reg = reg;
 	Res->Instrs = Res1->Instrs;
 	free(Res1);
 	free(Res2);

@@ -74,6 +74,33 @@ char getNextSourceChar() {
     return sChar;
 }
 
+// char getNextSourceChar() {
+//     if(source == NULL) {
+//         return EOF;
+//     }
+
+//     if(currentLine[col] == '\n') {
+//         char buf[MAXLINE];
+
+//         if((currentLine = fgets(buf, MAXLINE, source)) == NULL) {
+//             return EOF;
+//         }
+
+//         printed = 0;
+//         col = 0;
+//         line++;
+//         if(out != stdout) {
+//             fprintf(out, "%d. ", getCurrentLineNum());
+//         }
+//     }
+
+//     if(out != stdout) {
+//         fputc(currentLine[col], out);
+//     }
+
+//     return currentLine[col++];
+// }
+
 void writeIndicator(int column) {
     // printing current line if there's no listing file and currentLine hasn't been printed
     if(out == stdout && !printed) {
