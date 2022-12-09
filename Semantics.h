@@ -8,8 +8,9 @@ enum Type {INT, BOOL, STRING};
 
 typedef struct Attribute {
   enum Type type;
-  int size;
   int array;
+  int size;
+  int factor;
 } Attribute;
 
 struct ExprRes {
@@ -82,9 +83,3 @@ extern void declare(char * name, enum Type type, struct ExprRes * Res1, struct E
   Sizes based off of the C native types
 */
 extern int size(enum Type type);
-
-/*
-  Returns 1 if the char is a valid id character
-  Returns 0 otherwise
-*/
-extern int idChar(char c);

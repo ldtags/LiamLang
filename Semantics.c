@@ -24,6 +24,7 @@ struct ExprRes * doIntLit(char * digits)  {
   	res->Instrs = GenInstr(NULL, "li", TmpRegName(res->Reg), digits, NULL);
 	attr->type = INT;
 	attr->array = 0;
+	attr->factor = 0;
 	attr->size = sizeof(int);
 	res->Attr = attr;
   	return res;
@@ -36,15 +37,52 @@ struct ExprRes * doBoolLit(int val) {
 	res->Instrs = GenInstr(NULL, "li", TmpRegName(res->Reg), Imm(val), NULL);
 	attr->type = BOOL;
 	attr->array = 0;
+	attr->factor = 0;
 	attr->size = sizeof(_Bool);
 	res->Attr = attr;
 	return res;
 }
 
-int idChar(char c) {
-	return c > -1 && c < 10 || 
-		   c > 64 && c < 91 || 
-		   c > 96 && c < 123;
+void declare(char * name, enum Type type, struct ExprRes * Res1, struct ExprRes * Res2) {
+	if(!enterName(table, name)) {
+		writeIndicator(getCurrentColumnNum());
+		writeMessage("Variable already exists");
+	}
+
+	int size = 1;
+	char ** buf;
+	struct Attribute * attr = (struct Attribute*) malloc(sizeof(struct Attribute));
+	attr->type = type;
+	attr->array = 0;
+	attr->factor = 0;
+
+	if(Res1 != NULL) {
+		attr->array = 1;
+		size = (int) strtol(Res1->Instrs->Oprnd2, buf, 10);
+		ReleaseTmpReg(Res1->Reg);
+		free(Res1);
+	}
+
+	if(Res2 != NULL) {
+		attr->factor = (int) strtol(Res2->Instrs->Oprnd2, buf, 10);
+		size *= attr->factor;
+		ReleaseTmpReg(Res2->Reg);
+		free(Res2);
+	}
+
+	switch(type) {
+		case INT:
+			attr->size = size * (int) sizeof(int);
+			break;
+		case BOOL:
+			attr->size = size * (int) sizeof(_Bool);
+			break;
+		default:
+			writeIndicator(getCurrentColumnNum());
+			writeMessage("How did you even do that?");
+	}
+
+	setCurrentAttr(table, attr);
 }
 
 struct ExprRes * doLoadVal(char * name)  { 
@@ -56,7 +94,7 @@ struct ExprRes * doLoadVal(char * name)  {
   	struct ExprRes * res = (struct ExprRes *) malloc(sizeof(struct ExprRes));
   	res->Reg = AvailTmpReg();
 	res->Attr = getCurrentAttr(table);
-	res->Instrs = GenInstr(NULL,"lw" , TmpRegName(res->Reg), name, NULL);
+	res->Instrs = GenInstr(NULL, "lw" , TmpRegName(res->Reg), name, NULL);
 
   	return res;
 }
@@ -95,7 +133,7 @@ struct ExprRes * doLoad2DArrVal(char * name, struct ExprRes * offExpr1, struct E
 	Res->Instrs = offExpr1->Instrs;
 	AppendSeq(Res->Instrs, offExpr2->Instrs);
 	AppendSeq(Res->Instrs, GenInstr(NULL, "la", TmpRegName(Res->Reg), name, NULL));
-	AppendSeq(Res->Instrs, GenInstr(NULL, "li", TmpRegName(off), Imm(attr->size / size(attr->type)), NULL));
+	AppendSeq(Res->Instrs, GenInstr(NULL, "li", TmpRegName(off), Imm(attr->factor), NULL));
 	AppendSeq(Res->Instrs, GenInstr(NULL, "mul", TmpRegName(off), TmpRegName(off), TmpRegName(offExpr1->Reg)));
 	AppendSeq(Res->Instrs, GenInstr(NULL, "add", TmpRegName(off), TmpRegName(off), TmpRegName(offExpr2->Reg)));
 	AppendSeq(Res->Instrs, GenInstr(NULL, "sll", TmpRegName(off), TmpRegName(off), Imm(2)));
@@ -158,7 +196,7 @@ struct InstrSeq * do2DAssign(char * name, struct ExprRes * offExpr1, struct Expr
 	struct InstrSeq * seq = offExpr1->Instrs;
 	AppendSeq(seq, offExpr2->Instrs);
 	AppendSeq(seq, valExpr->Instrs);
-	AppendSeq(seq, GenInstr(NULL, "li", TmpRegName(off), Imm(attr->size / size(attr->type)), NULL));
+	AppendSeq(seq, GenInstr(NULL, "li", TmpRegName(off), Imm(attr->factor), NULL));
 	AppendSeq(seq, GenInstr(NULL, "mul", TmpRegName(off), TmpRegName(off), TmpRegName(offExpr1->Reg)));
 	AppendSeq(seq, GenInstr(NULL, "add", TmpRegName(off), TmpRegName(off), TmpRegName(offExpr2->Reg)));
 	AppendSeq(seq, GenInstr(NULL, "li", TmpRegName(reg), Imm(size(attr->type)), NULL));
@@ -176,47 +214,6 @@ struct InstrSeq * do2DAssign(char * name, struct ExprRes * offExpr1, struct Expr
 	free(offExpr2);
 	free(valExpr);
 	return seq;
-}
-
-void declare(char * name, enum Type type, struct ExprRes * Res1, struct ExprRes * Res2) {
-	if(!enterName(table, name)) {
-		writeIndicator(getCurrentColumnNum());
-		writeMessage("Variable already exists");
-	}
-
-	int size = 1;
-	char ** buf;
-	struct Attribute * attr = (struct Attribute*) malloc(sizeof(struct Attribute));
-	attr->type = type;
-	attr->array = 0;
-
-	if(Res1 != NULL) {
-		attr->array = 1;
-		size = (int) strtol(Res1->Instrs->Oprnd2, buf, 10);
-		ReleaseTmpReg(Res1->Reg);
-		free(Res1);
-	}
-
-	if(Res2 != NULL) {
-		attr->array = 2;
-		size *= (int) strtol(Res2->Instrs->Oprnd2, buf, 10);
-		ReleaseTmpReg(Res2->Reg);
-		free(Res2);
-	}
-
-	switch(type) {
-		case INT:
-			attr->size = size * (int) sizeof(int);
-			break;
-		case BOOL:
-			attr->size = size * (int) sizeof(_Bool);
-			break;
-		default:
-			writeIndicator(getCurrentColumnNum());
-			writeMessage("How did you even do that?");
-	}
-
-	setCurrentAttr(table, attr);
 }
 
 struct ExprRes * doAdd(struct ExprRes * Res1, struct ExprRes * Res2)  { 
@@ -715,11 +712,18 @@ void Finish(struct InstrSeq * Code)
  	hasMore = startIterator(table);
  	while (hasMore) {
 		attr = (struct Attribute*) getCurrentAttr(table);
+		if(!attr->array) {
+			AppendSeq(code, GenInstr(getCurrentName(table), ".word", "0", NULL, NULL));
+		} 
+    	hasMore = nextEntry(table);
+ 	}
+
+	hasMore = startIterator(table);
+ 	while (hasMore) {
+		attr = (struct Attribute*) getCurrentAttr(table);
 		if(attr->array) {
 			AppendSeq(code, GenInstr(getCurrentName(table), ".space", Imm(attr->size), NULL, NULL));
-		} else {
-			AppendSeq(code, GenInstr(getCurrentName(table), ".word", "0", NULL, NULL));
-		}
+		} 
     	hasMore = nextEntry(table);
  	}
 

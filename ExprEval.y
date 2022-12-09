@@ -95,6 +95,7 @@ Stmt          : Read '(' IdList ')' ';'                                         
 Stmt          : WriteLines '(' iExpr ')' ';'                                      { $$ = doPrintLines($3); };
 Stmt          : WriteSpaces '(' iExpr ')' ';'                                     { $$ = doPrintSpaces($3); };
 Stmt          : WriteString '(' String ')' ';'                                    { $$ = doPrintString($3); };
+Stmt          : Print '(' String ')' ';'                                          { $$ = doPrintString($3); };
 Stmt          : Id INCR ';'                                                       { $$ = doIncr($1); };
 Stmt			    :	Id '=' iExpr ';'								                                  { $$ = doAssign($1, $3); };
 Stmt          : Id '[' iExpr ']' '=' iExpr ';'                                    { $$ = doArrAssign($1, $3, $6); };
