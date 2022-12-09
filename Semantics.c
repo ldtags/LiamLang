@@ -19,16 +19,26 @@ extern SymTab *stringTable;
 
 struct ExprRes * doIntLit(char * digits)  { 
    	struct ExprRes * res = (struct ExprRes *) malloc(sizeof(struct ExprRes));
+	struct Attribute * attr = (struct Attribute *) malloc(sizeof(struct Attribute));
   	res->Reg = AvailTmpReg();
-  	res->Instrs = GenInstr(NULL,"li",TmpRegName(res->Reg),digits,NULL);
+  	res->Instrs = GenInstr(NULL, "li", TmpRegName(res->Reg), digits, NULL);
+	attr->type = INT;
+	attr->array = 0;
+	attr->size = sizeof(int);
+	res->Attr = attr;
   	return res;
 }
 
 struct ExprRes * doBoolLit(int val) {
-	struct ExprRes *Res = (struct ExprRes*) malloc(sizeof(struct ExprRes));
-	Res->Reg = AvailTmpReg();
-	Res->Instrs = GenInstr(NULL, "li", TmpRegName(Res->Reg), Imm(val), NULL);
-	return Res;
+	struct ExprRes *res = (struct ExprRes*) malloc(sizeof(struct ExprRes));
+	struct Attribute * attr = (struct Attribute *) malloc(sizeof(struct Attribute));
+	res->Reg = AvailTmpReg();
+	res->Instrs = GenInstr(NULL, "li", TmpRegName(res->Reg), Imm(val), NULL);
+	attr->type = BOOL;
+	attr->array = 0;
+	attr->size = sizeof(_Bool);
+	res->Attr = attr;
+	return res;
 }
 
 int idChar(char c) {
@@ -226,6 +236,10 @@ struct ExprRes * doDiv(struct ExprRes * Res1, struct ExprRes * Res2) {
 }
 
 struct ExprRes * GAR(struct ExprRes * Res1, struct ExprRes * Res2, char * OpCode) {
+	if(Res1->Attr->type != Res2->Attr->type) {
+		writeIndicator(getCurrentColumnNum());
+		writeMessage("WARNING -- illegal typecasting");
+	}
 	int reg = AvailTmpReg();
 	AppendSeq(Res1->Instrs, Res2->Instrs);
 	AppendSeq(Res1->Instrs, GenInstr(NULL, OpCode,
@@ -329,6 +343,10 @@ struct ExprRes * doGTE(struct ExprRes * Res1, struct ExprRes * Res2) {
 }
 
 struct ExprRes * GEQ(struct ExprRes * Res1, struct ExprRes * Res2, char * OpCode) {
+	if(Res1->Attr->type != Res2->Attr->type) {
+		writeIndicator(getCurrentColumnNum());
+		writeMessage("WARNING -- illegal typecasting");
+	}
 	int reg = AvailTmpReg();
 	struct ExprRes * Res = (struct ExprRes*) malloc(sizeof(struct ExprRes));
 
@@ -482,22 +500,16 @@ struct InstrSeq * doIOPrint(struct ExprList * list) {
 		expr = list->Expr;
 		instr = AppendSeq(instr, list->Expr->Instrs);
 
-		if(expr->Attr == NULL) {
-			AppendSeq(instr, doPrintInt(expr->Reg));
-		} else {
-			switch(expr->Attr->type) {
-				case INT:
-					AppendSeq(instr, doPrintInt(expr->Reg));
+		switch(expr->Attr->type) {
+			case INT:
+				AppendSeq(instr, doPrintInt(expr->Reg));
 				break;
-
-				case BOOL:
-					AppendSeq(instr, doPrintBool(expr->Reg));
+			case BOOL:
+				AppendSeq(instr, doPrintBool(expr->Reg));
 				break;
-				
-				default:
-					writeIndicator(getCurrentColumnNum());
- 					writeMessage("Unknown type, what are you trying to print?");
-			}
+			default:
+				writeIndicator(getCurrentColumnNum());
+ 				writeMessage("Unknown type, what are you trying to print?");
 		}
 
 		if(list->Next) {
