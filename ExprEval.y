@@ -63,6 +63,8 @@ extern SymTab *table;
 %token WriteString
 %token Read
 %token Bool
+%token Return
+%token Void
 %token TRUE
 %token FALSE
 %token WHILE
@@ -81,14 +83,17 @@ extern SymTab *table;
 Prog			    :	Declarations StmtSeq						                                  { Finish($2); };
 Declarations	:	Dec Declarations						                                      { };
 Declarations	:											                                              { };
+Dec           : Var Id '(' ')' '{' StmtSeq '}'                                    { declareFunction($1, $2, $6); };
 Dec			      :	Var Id ';'	                                                      { declare($2, $1, NULL, NULL); };
 Dec           : Var Id '[' ArrFactor ']' ';'                                      { declare($2, $1, $4, NULL); };
 Dec           : Var Id '[' ArrFactor ']' '[' ArrFactor ']' ';'                    { declare($2, $1, $4, $7); };
 Var           : Int                                                               { $$ = 0; };
 Var           : Bool                                                              { $$ = 1; };
+Var           : Void                                                              { $$ = 3; };
 ArrFactor     : IntLit									                                          { $$ = doIntLit(yytext); };
 StmtSeq 	    :	Stmt StmtSeq								                                      { $$ = AppendSeq($1, $2); };
 StmtSeq		    :											                                              { $$ = NULL; };
+Stmt          : Return iExpr ';'                                                  { $$ = doReturnExpr($2); };
 Stmt          : Print '(' ExprList ')' ';'                                        { $$ = doIOPrint($3); };
 Stmt          : Println '(' ExprList ')' ';'                                      { $$ = doPrintln($3); };
 Stmt          : Read '(' IdList ')' ';'                                           { $$ = doIORead($3); };
@@ -133,6 +138,7 @@ Factor		    :	IntLit									                                          { $$ = do
 Factor		    :	Id         								                                        { $$ = doLoadVal($1); };
 Factor        : Id '[' iExpr ']'																				          { $$ = doLoadArrVal($1, $3); };
 Factor        : Id '[' iExpr ']' '[' iExpr ']'                                    { $$ = doLoad2DArrVal($1, $3, $6); };
+Factor        : Id '(' ')'                                                        { $$ = doFuncCall($1); };
 Factor        : TRUE                                                              { $$ = doBoolLit(1); };
 Factor        : FALSE                                                             { $$ = doBoolLit(0); };
 ExprList      : ExprListItem                                                      { $$ = $1; };

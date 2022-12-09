@@ -18,6 +18,8 @@ digit [0-9]
 if					                                                          {return IF;}
 else                                                                  {return ELSE;}
 while                                                                 {return WHILE;}
+return                                                                {return Return;}
+void                                                                  {return Void;}
 int					                                                          {return Int;}
 bool                                                                  {return Bool;}
 print                                                                 {return Print;}

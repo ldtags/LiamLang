@@ -4,7 +4,7 @@
 #define MAX_STRING 32
 
 /* Semantic Records */
-enum Type {INT, BOOL, STRING};
+enum Type {INT, BOOL, STRING, VOID};
 
 typedef struct Attribute {
   enum Type type;

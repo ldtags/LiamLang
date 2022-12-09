@@ -77,6 +77,10 @@ void declare(char * name, enum Type type, struct ExprRes * Res1, struct ExprRes 
 		case BOOL:
 			attr->size = size * (int) sizeof(_Bool);
 			break;
+		case VOID:
+			writeIndicator(getCurrentColumnNum());
+			writeMessage("Void only supported for function use");
+			break;
 		default:
 			writeIndicator(getCurrentColumnNum());
 			writeMessage("How did you even do that?");
