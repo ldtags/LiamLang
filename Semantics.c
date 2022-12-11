@@ -89,6 +89,10 @@ void declare(char * name, enum Type type, struct ExprRes * Res1, struct ExprRes 
 	setCurrentAttr(table, attr);
 }
 
+void declareFunction() {
+	
+}
+
 struct ExprRes * doLoadVal(char * name)  { 
    	if (!findName(table, name)) {
 		writeIndicator(getCurrentColumnNum());
