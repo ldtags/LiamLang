@@ -103,7 +103,6 @@ Stmt          : Id '[' iExpr ']' '[' iExpr ']' '=' iExpr ';'                    
 Stmt			    :	IF '(' iExpr ')' '{' StmtSeq '}'	                                { $$ = doIf($3, $6); };
 Stmt          : IF '(' iExpr ')' '{' StmtSeq '}' ELSE '{' StmtSeq '}'             { $$ = doIfElse($3, $6, $10); };
 Stmt          : WHILE '(' iExpr ')' '{' StmtSeq '}'                               { $$ = doWhile($3, $6); };
-// Stmt          : FOR '(' Id '=' iExpr ';' iExpr ';' Stmt ')' '{' StmtSeq '}'       { $$ = doFor($3, $5, $7, $9, $12); };
 iExpr         : iExpr OR BExpr                                                    { $$ = doOr($1, $3); };
 iExpr         : BExpr                                                             { $$ = $1; };
 BExpr         : BExpr AND EqExpr                                                  { $$ = doAnd($1, $3); };
