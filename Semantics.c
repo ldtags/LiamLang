@@ -17,7 +17,14 @@ extern SymTab *stringTable;
 
 /* Semantics support routines */
 
-struct ExprRes * doIntLit(char * digits)  { 
+/*
+	digits -> char* representation of integer literal
+
+	Creates an ExprRes struct from char* digits
+	Creates Attribute struct to represent its INT typing
+	Uses li to load digits into variable in asm 
+*/
+struct ExprRes * doIntLit(char* digits)  {
    	struct ExprRes * res = (struct ExprRes *) malloc(sizeof(struct ExprRes));
 	struct Attribute * attr = (struct Attribute *) malloc(sizeof(struct Attribute));
   	res->Reg = AvailTmpReg();
@@ -30,6 +37,14 @@ struct ExprRes * doIntLit(char * digits)  {
   	return res;
 }
 
+/*
+	val -> integer representation of boolean literal
+
+	Creates an ExprRes struct from int val
+	Creates Attribute struct to represent its BOOL typing
+	Uses li to load int val of bool into variable in asm
+	Integer values of booleans follows C boolean values
+*/
 struct ExprRes * doBoolLit(int val) {
 	struct ExprRes *res = (struct ExprRes*) malloc(sizeof(struct ExprRes));
 	struct Attribute * attr = (struct Attribute *) malloc(sizeof(struct Attribute));
@@ -43,7 +58,18 @@ struct ExprRes * doBoolLit(int val) {
 	return res;
 }
 
-void declare(char * name, enum Type type, struct ExprRes * Res1, struct ExprRes * Res2) {
+/*
+	name -> Id of variable being declared
+	type -> enumerated type of variable (0->INT, 1->BOOL)
+	Res1 -> if the declared variable is an array, Res1 will be the ExprRes for the size
+			else, Res1 will be NULL
+	Res2 -> if the declared variable is a 2D array, Res2 will be the ExprRes for the length of each array
+			else, Res2 will be NULL
+
+	Declares the variable by loading it's Id into the symbol table, along with an attribute struct
+	The size calculations of variables are based off of C native type sizes
+*/
+void declare(char* name, enum Type type, struct ExprRes * Res1, struct ExprRes * Res2) {
 	if(!enterName(table, name)) {
 		writeIndicator(getCurrentColumnNum());
 		writeMessage("Variable already exists");
@@ -85,7 +111,14 @@ void declare(char * name, enum Type type, struct ExprRes * Res1, struct ExprRes 
 	setCurrentAttr(table, attr);
 }
 
-struct ExprRes * doLoadVal(char * name)  { 
+/* 
+	name -> Id of variable being loaded
+
+	Creates a new ExprRes struct containing a li instruction to load the 
+	value of Id into the register of the ExprRes struct 
+	The ExprRes struct is returned
+*/
+struct ExprRes * doLoadVal(char* name)  { 
    	if (!findName(table, name)) {
 		writeIndicator(getCurrentColumnNum());
 		writeMessage("Undeclared variable");
@@ -99,6 +132,13 @@ struct ExprRes * doLoadVal(char * name)  {
   	return res;
 }
 
+/* 
+	name -> Id of variable being loaded
+	offExpr -> ExprRes struct of offset to desired address
+
+    follows general instruction flow of an asm array access
+	returns an ExprRes struct with the desired value stored in the Reg
+*/
 struct ExprRes * doLoadArrVal(char * name, struct ExprRes * offExpr) {
 	if(!findName(table, name)) {
 		writeIndicator(getCurrentColumnNum());
@@ -119,6 +159,14 @@ struct ExprRes * doLoadArrVal(char * name, struct ExprRes * offExpr) {
 	return Res;
 }
 
+/* 
+	name -> Id of variable being loaded
+	offExpr1 -> ExprRes struct of row of value
+	offExpr2 -> ExprRes struct of column of value
+
+    follows general instruction flow of an asm 2D array access
+	returns an ExprRes struct with the desired value stored in the Reg
+*/
 struct ExprRes * doLoad2DArrVal(char * name, struct ExprRes * offExpr1, struct ExprRes * offExpr2) {
 	if(!findName(table, name)) {
 		writeIndicator(getCurrentColumnNum());
@@ -148,7 +196,14 @@ struct ExprRes * doLoad2DArrVal(char * name, struct ExprRes * offExpr1, struct E
 	return Res;
 }
 
-struct InstrSeq * doAssign(char * name, struct ExprRes * Expr) { 
+/* 
+	name -> Id of variable being assigned the value
+	Expr -> ExprRes struct of value being assigned
+
+	uses sw instruction to store value in Expr->Reg in the variable
+	InstrSeq of assignment is returned
+*/
+struct InstrSeq * doAssign(char* name, struct ExprRes * Expr) { 
    	if (!findName(table, name)) {
 		writeIndicator(getCurrentColumnNum());
 		writeMessage("Undeclared variable");
@@ -162,6 +217,14 @@ struct InstrSeq * doAssign(char * name, struct ExprRes * Expr) {
   	return code;
 }
 
+/* 
+	name -> Id of variable being assigned the value
+	offExpr -> Offset to index of array being assigned
+	valExpr -> ExprRes struct of value being assigned
+
+	follows general flow of asm array assignment instructions
+	InstrSeq of assignment is returned
+*/
 struct InstrSeq * doArrAssign(char * name, struct ExprRes * offExpr, struct ExprRes * valExpr) {
 	if(!findName(table, name)) {
 		writeIndicator(getCurrentColumnNum());
@@ -184,6 +247,15 @@ struct InstrSeq * doArrAssign(char * name, struct ExprRes * offExpr, struct Expr
 	return seq;
 }
 
+/* 
+	name -> Id of variable being assigned the value
+	offExpr1 -> Row offset to index of 2d array being assigned
+	offExpr2 -> Column offset to index of 2d array being assigned
+	valExpr -> ExprRes struct of value being assigned
+
+	follows general flow of asm 2d array assignment instructions
+	InstrSeq of assignment is returned
+*/
 struct InstrSeq * do2DAssign(char * name, struct ExprRes * offExpr1, struct ExprRes * offExpr2, struct ExprRes * valExpr) {
 	if(!findName(table, name)) {
 		writeIndicator(getCurrentColumnNum());
@@ -232,6 +304,15 @@ struct ExprRes * doDiv(struct ExprRes * Res1, struct ExprRes * Res2) {
 	return GAR(Res1, Res2, "div");
 }
 
+/*  
+	Res1 -> left value of general arithmatic function
+	Res2 -> right value of general arithmatic function
+	OpCode -> OpCode of desired arithmatic instruction
+
+	Performs the desired arithmatic instruction using Res1 and Res2 as the values
+	Follows general asm arithmatic instruction flow
+	Returns ExprRes containing the instructions of the GAR
+*/
 struct ExprRes * GAR(struct ExprRes * Res1, struct ExprRes * Res2, char * OpCode) {
 	if(Res1->Attr->type != Res2->Attr->type) {
 		writeIndicator(getCurrentColumnNum());
@@ -246,10 +327,18 @@ struct ExprRes * GAR(struct ExprRes * Res1, struct ExprRes * Res2, char * OpCode
 	ReleaseTmpReg(Res1->Reg);
 	ReleaseTmpReg(Res2->Reg);
 	Res1->Reg = reg;
+	// Res1->Attr->type = INT;
 	free(Res2);
 	return Res1;
 }
 
+
+/* 
+	Res1 -> left value of modulo
+	Res2 -> right value of modulo
+
+	returns ExprRes struct containing instructions for Res1 % Res2
+*/
 struct ExprRes * doMod(struct ExprRes * Res1, struct ExprRes * Res2) {
 	int reg = AvailTmpReg();
 
@@ -264,6 +353,13 @@ struct ExprRes * doMod(struct ExprRes * Res1, struct ExprRes * Res2) {
 	return Res1;
 }
 
+/* 
+	Res1 -> left value of modulo
+	Res2 -> right value of modulo
+
+	exponentiation is right associative
+	returns ExprRes struct containing instructions for Res1 ^ Res2
+*/
 struct ExprRes * doExp(struct ExprRes * Res1, struct ExprRes * Res2) {
 	int reg = AvailTmpReg();
 	int index = AvailTmpReg();
@@ -290,6 +386,11 @@ struct ExprRes * doExp(struct ExprRes * Res1, struct ExprRes * Res2) {
 	return Res1;
 }
 
+/*  
+	Res -> ExprRes containing register of value to perform unary minus on
+
+	returns ExprRes containing instructions for unary minus of Res
+*/
 struct ExprRes * doUMin(struct ExprRes * Res) {
 	int reg = AvailTmpReg();
 	int temp = AvailTmpReg();
@@ -301,7 +402,12 @@ struct ExprRes * doUMin(struct ExprRes * Res) {
 	return Res;
 }
 
-struct InstrSeq * doIncr(char * name) {
+/*
+	name -> Id of variable to increment
+
+	returns InstrSeq struct of instructions to increment the desired variable
+*/
+struct InstrSeq * doIncr(char* name) {
 	if(!findName(table, name)) {
 		writeIndicator(getCurrentColumnNum());
 		writeMessage("Variable does not exist");
@@ -346,6 +452,11 @@ struct ExprRes * GEQ(struct ExprRes * Res1, struct ExprRes * Res2, char * OpCode
 	}
 	int reg = AvailTmpReg();
 	struct ExprRes * Res = (struct ExprRes*) malloc(sizeof(struct ExprRes));
+	// struct Attribute * attr = (struct Attribute*) malloc(sizeof(struct Attribute));
+	// attr->array = 0;
+	// attr->factor = 0;
+	// attr->size = Res1->Attr->size;
+	// attr->type = BOOL;
 
 	AppendSeq(Res1->Instrs, Res2->Instrs);
 	AppendSeq(Res1->Instrs, GenInstr(NULL, OpCode, 

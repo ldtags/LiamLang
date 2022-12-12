@@ -11,3 +11,5 @@
 /comp
 .vscode/settings.json
 /mars.jar
+/run
+/runner.c

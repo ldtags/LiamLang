@@ -76,7 +76,7 @@ extern struct InstrSeq  *  doPrintInt(int reg);
 extern struct InstrSeq  *  doPrintBool(int reg);
 
 extern void	Finish(struct InstrSeq *Code);
-extern void declare(char * name, enum Type type, struct ExprRes * Res1, struct ExprRes * Res2);
+extern void declare(char* name, enum Type type, struct ExprRes * Res1, struct ExprRes * Res2);
 
 /*
   Returns the size of specified enum Type type
