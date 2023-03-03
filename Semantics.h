@@ -74,6 +74,7 @@ extern struct InstrSeq  *  doPrintSpaces(struct ExprRes * Expr);
 extern struct InstrSeq  *  doPrintString(char * string);
 extern struct InstrSeq  *  doPrintInt(int reg);
 extern struct InstrSeq  *  doPrintBool(int reg);
+extern struct InstrSeq  *  prepInstructions(struct InstrSeq * progInstrs);
 
 extern void	Finish(struct InstrSeq *Code);
 extern void declare(char* name, enum Type type, struct ExprRes * Res1, struct ExprRes * Res2);
