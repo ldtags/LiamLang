@@ -18,9 +18,9 @@ extern SymTab *stringTable;
 /* Semantics support routines */
 
 /*
-	digits -> char* representation of integer literal
+	@digits -> char* representation of integer literal
 
-	Creates an ExprRes struct from char* digits
+	Creates an ExprRes struct from char* @digits
 	Creates Attribute struct to represent its INT typing
 	Uses li to load digits into variable in asm 
 */
@@ -38,11 +38,11 @@ struct ExprRes * doIntLit(char* digits)  {
 }
 
 /*
-	val -> integer representation of boolean literal
+	@val -> integer representation of boolean literal
 
-	Creates an ExprRes struct from int val
+	Creates an ExprRes struct from int @val
 	Creates Attribute struct to represent its BOOL typing
-	Uses li to load int val of bool into variable in asm
+	Uses li to load int @val of bool into variable in asm
 	Integer values of booleans follows C boolean values
 */
 struct ExprRes * doBoolLit(int val) {
@@ -59,12 +59,12 @@ struct ExprRes * doBoolLit(int val) {
 }
 
 /*
-	name -> Id of variable being declared
-	type -> enumerated type of variable (0->INT, 1->BOOL)
-	Res1 -> if the declared variable is an array, Res1 will be the ExprRes for the size
-			else, Res1 will be NULL
-	Res2 -> if the declared variable is a 2D array, Res2 will be the ExprRes for the length of each array
-			else, Res2 will be NULL
+	@name -> Id of variable being declared
+	@type -> enumerated type of variable (0->INT, 1->BOOL)
+	@Res1 -> if the declared variable is an array, Res1 will be the ExprRes for the size
+			 else, Res1 will be NULL
+	@Res2 -> if the declared variable is a 2D array, Res2 will be the ExprRes for the length of each array
+			 else, Res2 will be NULL
 
 	Declares the variable by loading it's Id into the symbol table, along with an attribute struct
 	The size calculations of variables are based off of C native type sizes
@@ -112,7 +112,7 @@ void declare(char* name, enum Type type, struct ExprRes * Res1, struct ExprRes *
 }
 
 /* 
-	name -> Id of variable being loaded
+	@name -> Id of variable being loaded
 
 	Creates a new ExprRes struct containing a li instruction to load the 
 	value of Id into the register of the ExprRes struct 
@@ -133,8 +133,8 @@ struct ExprRes * doLoadVal(char* name)  {
 }
 
 /* 
-	name -> Id of variable being loaded
-	offExpr -> ExprRes struct of offset to desired address
+	@name -> Id of variable being loaded
+	@offExpr -> ExprRes struct of offset to desired address
 
     follows general instruction flow of an asm array access
 	returns an ExprRes struct with the desired value stored in the Reg
@@ -160,9 +160,9 @@ struct ExprRes * doLoadArrVal(char * name, struct ExprRes * offExpr) {
 }
 
 /* 
-	name -> Id of variable being loaded
-	offExpr1 -> ExprRes struct of row of value
-	offExpr2 -> ExprRes struct of column of value
+	@name -> Id of variable being loaded
+	@offExpr1 -> ExprRes struct of row of value
+	@offExpr2 -> ExprRes struct of column of value
 
     follows general instruction flow of an asm 2D array access
 	returns an ExprRes struct with the desired value stored in the Reg
@@ -197,10 +197,10 @@ struct ExprRes * doLoad2DArrVal(char * name, struct ExprRes * offExpr1, struct E
 }
 
 /* 
-	name -> Id of variable being assigned the value
-	Expr -> ExprRes struct of value being assigned
+	@name -> Id of variable being assigned the value
+	@Expr -> ExprRes struct of value being assigned
 
-	uses sw instruction to store value in Expr->Reg in the variable
+	uses sw instruction to store value in @Expr->Reg in the variable
 	InstrSeq of assignment is returned
 */
 struct InstrSeq * doAssign(char* name, struct ExprRes * Expr) { 
@@ -218,12 +218,12 @@ struct InstrSeq * doAssign(char* name, struct ExprRes * Expr) {
 }
 
 /* 
-	name -> Id of variable being assigned the value
-	offExpr -> Offset to index of array being assigned
-	valExpr -> ExprRes struct of value being assigned
+	@name -> Id of variable being assigned the value
+	@offExpr -> Offset to index of array being assigned
+	@valExpr -> ExprRes struct of value being assigned
 
 	follows general flow of asm array assignment instructions
-	InstrSeq of assignment is returned
+	InstrSeq struct of assignment is returned
 */
 struct InstrSeq * doArrAssign(char * name, struct ExprRes * offExpr, struct ExprRes * valExpr) {
 	if(!findName(table, name)) {
@@ -247,14 +247,32 @@ struct InstrSeq * doArrAssign(char * name, struct ExprRes * offExpr, struct Expr
 	return seq;
 }
 
+/*
+	@type -> an enum Type value
+
+	returns the C spec size of the provided type
+*/
+int size(enum Type type) {
+  	switch (type) {
+  	  	case INT:
+  	  	  	return sizeof(int);
+  	  	case BOOL:
+  	  	  	return sizeof(_Bool);
+  	  	default:
+  	    	writeIndicator(getCurrentColumnNum());
+			writeMessage("Unrecognized type");
+  	    	return 1;
+  	}
+}
+
 /* 
-	name -> Id of variable being assigned the value
-	offExpr1 -> Row offset to index of 2d array being assigned
-	offExpr2 -> Column offset to index of 2d array being assigned
-	valExpr -> ExprRes struct of value being assigned
+	@name -> Id of variable being assigned the value
+	@offExpr1 -> Row offset to index of 2d array being assigned
+	@offExpr2 -> Column offset to index of 2d array being assigned
+	@valExpr -> ExprRes struct of value being assigned
 
 	follows general flow of asm 2d array assignment instructions
-	InstrSeq of assignment is returned
+	InstrSeq struct of assignment is returned
 */
 struct InstrSeq * do2DAssign(char * name, struct ExprRes * offExpr1, struct ExprRes * offExpr2, struct ExprRes * valExpr) {
 	if(!findName(table, name)) {
@@ -305,11 +323,11 @@ struct ExprRes * doDiv(struct ExprRes * Res1, struct ExprRes * Res2) {
 }
 
 /*  
-	Res1 -> left value of general arithmatic function
-	Res2 -> right value of general arithmatic function
-	OpCode -> OpCode of desired arithmatic instruction
+	@Res1 -> left value of general arithmatic function
+	@Res2 -> right value of general arithmatic function
+	@OpCode -> OpCode of desired arithmatic instruction
 
-	Performs the desired arithmatic instruction using Res1 and Res2 as the values
+	Performs the desired arithmatic instruction using @Res1 and @Res2 as the values
 	Follows general asm arithmatic instruction flow
 	Returns ExprRes containing the instructions of the GAR
 */
@@ -334,10 +352,10 @@ struct ExprRes * GAR(struct ExprRes * Res1, struct ExprRes * Res2, char * OpCode
 
 
 /* 
-	Res1 -> left value of modulo
-	Res2 -> right value of modulo
+	@Res1 -> left value of modulo
+	@Res2 -> right value of modulo
 
-	returns ExprRes struct containing instructions for Res1 % Res2
+	returns ExprRes struct containing instructions for modulo @Res1 % @Res2
 */
 struct ExprRes * doMod(struct ExprRes * Res1, struct ExprRes * Res2) {
 	int reg = AvailTmpReg();
@@ -354,11 +372,11 @@ struct ExprRes * doMod(struct ExprRes * Res1, struct ExprRes * Res2) {
 }
 
 /* 
-	Res1 -> left value of modulo
-	Res2 -> right value of modulo
+	@Res1 -> base value
+	@Res2 -> exponential value
 
 	exponentiation is right associative
-	returns ExprRes struct containing instructions for Res1 ^ Res2
+	returns ExprRes struct containing instructions for exponentiation @Res1 ^ @Res2
 */
 struct ExprRes * doExp(struct ExprRes * Res1, struct ExprRes * Res2) {
 	int reg = AvailTmpReg();
@@ -387,9 +405,9 @@ struct ExprRes * doExp(struct ExprRes * Res1, struct ExprRes * Res2) {
 }
 
 /*  
-	Res -> ExprRes containing register of value to perform unary minus on
+	@Res -> ExprRes containing register of value to perform unary minus on
 
-	returns ExprRes containing instructions for unary minus of Res
+	returns ExprRes struct containing instructions for unary minus of @Res
 */
 struct ExprRes * doUMin(struct ExprRes * Res) {
 	int reg = AvailTmpReg();
@@ -403,7 +421,7 @@ struct ExprRes * doUMin(struct ExprRes * Res) {
 }
 
 /*
-	name -> Id of variable to increment
+	@name -> Id of variable to increment
 
 	returns InstrSeq struct of instructions to increment the desired variable
 */
@@ -452,11 +470,6 @@ struct ExprRes * GEQ(struct ExprRes * Res1, struct ExprRes * Res2, char * OpCode
 	}
 	int reg = AvailTmpReg();
 	struct ExprRes * Res = (struct ExprRes*) malloc(sizeof(struct ExprRes));
-	// struct Attribute * attr = (struct Attribute*) malloc(sizeof(struct Attribute));
-	// attr->array = 0;
-	// attr->factor = 0;
-	// attr->size = Res1->Attr->size;
-	// attr->type = BOOL;
 
 	AppendSeq(Res1->Instrs, Res2->Instrs);
 	AppendSeq(Res1->Instrs, GenInstr(NULL, OpCode, 
@@ -536,12 +549,12 @@ struct InstrSeq  *  doIfElse(struct ExprRes * Res, struct InstrSeq * ifseq, stru
 	char * els = GenLabel();
 	char * end = GenLabel();
 
-	AppendSeq(Res->Instrs, GenInstr(NULL, "beq", "$zero", TmpRegName(Res->Reg), els));
+	AppendSeq(Res->Instrs, GenInstr( NULL, "beq", "$zero", TmpRegName(Res->Reg), els ));
 	seq = AppendSeq(Res->Instrs, ifseq);
-	AppendSeq(seq, GenInstr(NULL, "j", end, NULL, NULL));
-	AppendSeq(seq, GenInstr(els, NULL, NULL, NULL, NULL));
+	AppendSeq(seq, GenInstr( NULL, "j", end, NULL, NULL ));
+	AppendSeq(seq, GenInstr( els, NULL, NULL, NULL, NULL ));
 	AppendSeq(seq, elseq);
-	AppendSeq(seq, GenInstr(end, NULL, NULL, NULL, NULL));
+	AppendSeq(seq, GenInstr( end, NULL, NULL, NULL, NULL ));
 
 	ReleaseTmpReg(Res->Reg);
 	free(Res);
@@ -555,11 +568,11 @@ struct InstrSeq * doWhile(struct ExprRes * Res, struct InstrSeq * lpseq) {
 	char * loop = GenLabel();
 	char * done = GenLabel();
 	
-	seq = AppendSeq(GenInstr(loop, NULL, NULL, NULL, NULL), Res->Instrs);
-	AppendSeq(seq, GenInstr(NULL, "beq", "$zero", TmpRegName(Res->Reg), done));
+	seq = AppendSeq(GenInstr( loop, NULL, NULL, NULL, NULL ), Res->Instrs);
+	AppendSeq(seq, GenInstr( NULL, "beq", "$zero", TmpRegName(Res->Reg), done ));
 	AppendSeq(seq, lpseq);
-	AppendSeq(seq, GenInstr(NULL, "b", loop, NULL, NULL));
-	AppendSeq(seq, GenInstr(done, NULL, NULL, NULL, NULL));
+	AppendSeq(seq, GenInstr( NULL, "b", loop, NULL, NULL ));
+	AppendSeq(seq, GenInstr( done, NULL, NULL, NULL, NULL ));
 
 	ReleaseTmpReg(Res->Reg);
 	free(Res);
@@ -567,25 +580,6 @@ struct InstrSeq * doWhile(struct ExprRes * Res, struct InstrSeq * lpseq) {
 	free(done);
 	return seq;
 }
-
-/*
-
-extern struct InstrSeq * doIf(struct ExprRes *res1, struct ExprRes *res2, struct InstrSeq * seq) {
-	struct InstrSeq *seq2;
-	char * label;
-	label = GenLabel();
-	AppendSeq(res1->Instrs, res2->Instrs);
-	AppendSeq(res1->Instrs, GenInstr(NULL, "bne", TmpRegName(res1->Reg), TmpRegName(res2->Reg), label));
-	seq2 = AppendSeq(res1->Instrs, seq);
-	AppendSeq(seq2, GenInstr(label, NULL, NULL, NULL, NULL));
-	ReleaseTmpReg(res1->Reg);
-  	ReleaseTmpReg(res2->Reg);
-	free(res1);
-	free(res2);
-	return seq2;
-}
-
-*/
 
 struct ExprList * createExprListItem(struct ExprRes * Res) {
 	struct ExprList * listItem = (struct ExprList*) malloc(sizeof(struct ExprList));
@@ -604,11 +598,11 @@ struct InstrSeq * doIOPrint(struct ExprList * list) {
 	struct ExprRes * expr;
 	int type;
 
-	while(list != NULL) {
+	while (list != NULL) {
 		expr = list->Expr;
 		instr = AppendSeq(instr, list->Expr->Instrs);
 
-		switch(expr->Attr->type) {
+		switch (expr->Attr->type) {
 			case INT:
 				AppendSeq(instr, doPrintInt(expr->Reg));
 				break;
@@ -620,10 +614,10 @@ struct InstrSeq * doIOPrint(struct ExprList * list) {
  				writeMessage("Unknown type, what are you trying to print?");
 		}
 
-		if(list->Next) {
-			AppendSeq(instr, GenInstr(NULL, "la", "$a0", "_space", NULL));
-			AppendSeq(instr, GenInstr(NULL, "li", "$v0", Imm(4), NULL));
-			AppendSeq(instr, GenInstr(NULL, "syscall", NULL, NULL, NULL));
+		if (list->Next) {
+			AppendSeq(instr, GenInstr( NULL, "la", "$a0", "_space", NULL ));
+			AppendSeq(instr, GenInstr( NULL, "li", "$v0", Imm(4), NULL ));
+			AppendSeq(instr, GenInstr( NULL, "syscall", NULL, NULL, NULL ));
 		}
 
 		ReleaseTmpReg(list->Expr->Reg);
@@ -637,20 +631,21 @@ struct InstrSeq * doIOPrint(struct ExprList * list) {
 
 struct InstrSeq * doPrintln(struct ExprList * list) { 
   	struct InstrSeq * instr = doIOPrint(list);
-	AppendSeq(instr, GenInstr(NULL, "la", "$a0", "_space", NULL));
-	AppendSeq(instr, GenInstr(NULL, "li", "$v0", Imm(4), NULL));
-	AppendSeq(instr, GenInstr(NULL, "syscall", NULL, NULL, NULL));
+	AppendSeq(instr, GenInstr( NULL, "la", "$a0", "_space", NULL ));
+	AppendSeq(instr, GenInstr( NULL, "li", "$v0", Imm(4), NULL ));
+	AppendSeq(instr, GenInstr( NULL, "syscall", NULL, NULL, NULL ));
   	return instr;
 }
 
 struct IdList * createIdListItem(char * id, struct ExprRes * offExpr) {
-	if(!findName(table, id)) {
+	if (!findName(table, id)) {
 		writeIndicator(getCurrentColumnNum());
 		writeMessage("must declare variables");
 	}
+
 	struct IdList * listItem = (struct IdList*) malloc(sizeof(struct IdList));
 	listItem->Entry = table->current;
-	if(offExpr) {
+	if (offExpr) {
 		listItem->OffExpr = offExpr;
 	} else {
 		listItem->OffExpr = NULL;
@@ -669,20 +664,20 @@ struct InstrSeq * doIORead(struct IdList * list) {
 	char *name;
 	int reg = AvailTmpReg();
 
-	while(list != NULL) {
-		if(list->OffExpr) { code = AppendSeq(code, list->OffExpr->Instrs); }
+	while (list != NULL) {
+		if (list->OffExpr) { code = AppendSeq(code, list->OffExpr->Instrs); }
 		name = list->Entry->name;
-		code = AppendSeq(code, GenInstr(NULL, "la", TmpRegName(reg), name, NULL));
-		AppendSeq(code, GenInstr(NULL, "li", "$v0", Imm(5), NULL));
-		AppendSeq(code, GenInstr(NULL, "syscall", NULL, NULL, NULL));
+		code = AppendSeq(code, GenInstr( NULL, "la", TmpRegName(reg), name, NULL ));
+		AppendSeq(code, GenInstr( NULL, "li", "$v0", Imm(5), NULL ));
+		AppendSeq(code, GenInstr( NULL, "syscall", NULL, NULL, NULL ));
 
-		if(list->OffExpr) {
-			AppendSeq(code, GenInstr(NULL, "sll", TmpRegName(list->OffExpr->Reg), TmpRegName(list->OffExpr->Reg), Imm(2)));
-			AppendSeq(code, GenInstr(NULL, "add", TmpRegName(reg), TmpRegName(reg), TmpRegName(list->OffExpr->Reg)));
+		if (list->OffExpr) {
+			AppendSeq(code, GenInstr( NULL, "sll", TmpRegName(list->OffExpr->Reg), TmpRegName(list->OffExpr->Reg), Imm(2) ));
+			AppendSeq(code, GenInstr( NULL, "add", TmpRegName(reg), TmpRegName(reg), TmpRegName(list->OffExpr->Reg) ));
 			ReleaseTmpReg(list->OffExpr->Reg);
 		}
 		
-		AppendSeq(code, GenInstr(NULL, "sw", "$v0", RegOff(0, TmpRegName(reg)), NULL));
+		AppendSeq(code, GenInstr( NULL, "sw", "$v0", RegOff(0, TmpRegName(reg)), NULL ));
 
 		free(list->OffExpr);
 		list = list->Next;
@@ -699,15 +694,15 @@ struct InstrSeq * doPrintLines(struct ExprRes * Expr) {
 	char * done = GenLabel();
 	int reg = AvailTmpReg();
 
-	AppendSeq(code, GenInstr(NULL, "li", TmpRegName(reg), Imm(0), NULL));
-	AppendSeq(code, GenInstr(loop, NULL, NULL, NULL, NULL));
-	AppendSeq(code, GenInstr(NULL, "beq", TmpRegName(reg), TmpRegName(Expr->Reg), done));
-	AppendSeq(code, GenInstr(NULL, "li", "$v0", "4", NULL));
-    AppendSeq(code, GenInstr(NULL, "la", "$a0", "_nl", NULL));
-    AppendSeq(code, GenInstr(NULL, "syscall", NULL, NULL, NULL));
-	AppendSeq(code, GenInstr(NULL, "addi", TmpRegName(reg), TmpRegName(reg), Imm(1)));
-	AppendSeq(code, GenInstr(NULL, "b", loop, NULL, NULL));
-	AppendSeq(code, GenInstr(done, NULL, NULL, NULL, NULL));
+	AppendSeq(code, GenInstr( NULL, "li", TmpRegName(reg), Imm(0), NULL ));
+	AppendSeq(code, GenInstr( loop, NULL, NULL, NULL, NULL ));
+	AppendSeq(code, GenInstr( NULL, "beq", TmpRegName(reg), TmpRegName(Expr->Reg), done ));
+	AppendSeq(code, GenInstr( NULL, "li", "$v0", "4", NULL ));
+    AppendSeq(code, GenInstr( NULL, "la", "$a0", "_nl", NULL ));
+    AppendSeq(code, GenInstr( NULL, "syscall", NULL, NULL, NULL ));
+	AppendSeq(code, GenInstr( NULL, "addi", TmpRegName(reg), TmpRegName(reg), Imm(1) ));
+	AppendSeq(code, GenInstr( NULL, "b", loop, NULL, NULL ));
+	AppendSeq(code, GenInstr( done, NULL, NULL, NULL, NULL ));
 
 	ReleaseTmpReg(reg);
 	ReleaseTmpReg(Expr->Reg);
@@ -723,15 +718,15 @@ struct InstrSeq * doPrintSpaces(struct ExprRes * Expr) {
 	char * done = GenLabel();
 	int reg = AvailTmpReg();
 
-	AppendSeq(code, GenInstr(NULL, "li", TmpRegName(reg), Imm(0), NULL));
-	AppendSeq(code, GenInstr(loop, NULL, NULL, NULL, NULL));
-	AppendSeq(code, GenInstr(NULL, "beq", TmpRegName(reg), TmpRegName(Expr->Reg), done));
-	AppendSeq(code, GenInstr(NULL, "la", "$a0", "_space", NULL));
-	AppendSeq(code, GenInstr(NULL, "li", "$v0", Imm(4), NULL));
-	AppendSeq(code, GenInstr(NULL, "syscall", NULL, NULL, NULL));
-	AppendSeq(code, GenInstr(NULL, "addi", TmpRegName(reg), TmpRegName(reg), Imm(1)));
-	AppendSeq(code, GenInstr(NULL, "b", loop, NULL, NULL));
-	AppendSeq(code, GenInstr(done, NULL, NULL, NULL, NULL));
+	AppendSeq(code, GenInstr( NULL, "li", TmpRegName(reg), Imm(0), NULL ));
+	AppendSeq(code, GenInstr( loop, NULL, NULL, NULL, NULL ));
+	AppendSeq(code, GenInstr( NULL, "beq", TmpRegName(reg), TmpRegName(Expr->Reg), done ));
+	AppendSeq(code, GenInstr( NULL, "la", "$a0", "_space", NULL ));
+	AppendSeq(code, GenInstr( NULL, "li", "$v0", Imm(4), NULL ));
+	AppendSeq(code, GenInstr( NULL, "syscall", NULL, NULL, NULL ));
+	AppendSeq(code, GenInstr( NULL, "addi", TmpRegName(reg), TmpRegName(reg), Imm(1) ));
+	AppendSeq(code, GenInstr( NULL, "b", loop, NULL, NULL ));
+	AppendSeq(code, GenInstr( done, NULL, NULL, NULL, NULL ));
 
 	ReleaseTmpReg(reg);
 	ReleaseTmpReg(Expr->Reg);
@@ -746,75 +741,74 @@ struct InstrSeq * doPrintString(char *string) {
 	enterName(stringTable, label);
 	setCurrentAttr(stringTable, string);
 
-	struct InstrSeq * seq = GenInstr(NULL, "li", "$v0", Imm(4), NULL);
-	AppendSeq(seq, GenInstr(NULL, "la", "$a0", label, NULL));
-	AppendSeq(seq, GenInstr(NULL, "syscall", NULL, NULL, NULL));
+	struct InstrSeq * seq = GenInstr( NULL, "li", "$v0", Imm(4), NULL );
+	AppendSeq(seq, GenInstr( NULL, "la", "$a0", label, NULL ));
+	AppendSeq(seq, GenInstr( NULL, "syscall", NULL, NULL, NULL ));
 	
 	return seq;
 }
 
 struct InstrSeq * doPrintInt(int reg) {
-	struct InstrSeq * instr = GenInstr(NULL, "li", "$v0", Imm(1), NULL);
-	AppendSeq(instr, GenInstr(NULL, "move", "$a0", TmpRegName(reg), NULL));
-	AppendSeq(instr, GenInstr(NULL, "syscall", NULL, NULL, NULL));
+	struct InstrSeq * instr = GenInstr( NULL, "li", "$v0", Imm(1), NULL );
+	AppendSeq(instr, GenInstr( NULL, "move", "$a0", TmpRegName(reg), NULL ));
+	AppendSeq(instr, GenInstr( NULL, "syscall", NULL, NULL, NULL ));
 	return instr;
 }
 
 struct InstrSeq * doPrintBool(int reg) {
-	char* els = GenLabel();
-	char* end = GenLabel();
+	char * els = GenLabel();
+	char * end = GenLabel();
 	struct InstrSeq * instr = GenInstr(NULL, "beq", TmpRegName(reg), "$zero", els);
-	AppendSeq(instr, GenInstr(NULL, "la", "$a0", "_true", NULL));
-	AppendSeq(instr, GenInstr(NULL, "j", end, NULL, NULL));
-	AppendSeq(instr, GenInstr(els, NULL, NULL, NULL, NULL));
-	AppendSeq(instr, GenInstr(NULL, "la", "$a0", "_false", NULL));
-	AppendSeq(instr, GenInstr(end, NULL, NULL, NULL, NULL));
-	AppendSeq(instr, GenInstr(NULL, "li", "$v0", Imm(4), NULL));
-	AppendSeq(instr, GenInstr(NULL, "syscall", NULL, NULL, NULL));
+	AppendSeq(instr, GenInstr( NULL, "la", "$a0", "_true", NULL ));
+	AppendSeq(instr, GenInstr( NULL, "j", end, NULL, NULL ));
+	AppendSeq(instr, GenInstr( els, NULL, NULL, NULL, NULL ));
+	AppendSeq(instr, GenInstr( NULL, "la", "$a0", "_false", NULL ));
+	AppendSeq(instr, GenInstr( end, NULL, NULL, NULL, NULL ));
+	AppendSeq(instr, GenInstr( NULL, "li", "$v0", Imm(4), NULL ));
+	AppendSeq(instr, GenInstr( NULL, "syscall", NULL, NULL, NULL ));
 	free(els);
 	free(end);
 	return instr;
 }
 
-int size(enum Type type) {
-  	switch(type) {
-  	  	case INT:
-  	  	  	return sizeof(int);
-  	  	case BOOL:
-  	  	  	return sizeof(_Bool);
-  	  	default:
-  	    	writeIndicator(getCurrentColumnNum());
-			writeMessage("Unrecognized type");
-  	    	return 1;
-  	}
+/*
+	@progInstrs -> assembly instructions interpreted from the source file
+
+	adds the .text and .data fields to a new InstrSeq struct
+	returns the new InstrSeq struct
+*/
+struct InstrSeq * prepInstructions(struct InstrSeq * progInstrs) {
+	struct InstrSeq * code = GenInstr( NULL, ".text", NULL, NULL, NULL );
+	AppendSeq(code, GenInstr( NULL, ".globl", "main", NULL, NULL ));
+  	AppendSeq(code, GenInstr( "main", NULL, NULL, NULL, NULL ));
+  	AppendSeq(code, progInstrs);
+  	AppendSeq(code, GenInstr( NULL, "li", "$v0", "10", NULL )); 
+  	AppendSeq(code, GenInstr( NULL, "syscall", NULL, NULL, NULL ));
+  	AppendSeq(code, GenInstr( NULL, ".data", NULL, NULL, NULL ));
+  	AppendSeq(code, GenInstr( NULL, ".align", "4", NULL, NULL ));
+  	AppendSeq(code, GenInstr( "_nl", ".asciiz", "\"\\n\"", NULL, NULL ));
+	AppendSeq(code, GenInstr( "_true", ".asciiz", "\"true\"", NULL, NULL ));
+	AppendSeq(code, GenInstr( "_false", ".asciiz", "\"false\"", NULL, NULL ));
+	AppendSeq(code, GenInstr( "_space", ".asciiz", "\" \"", NULL, NULL ));
+	return code;
 }
 
+/*
+	@progInstrs -> assembly instructions interpreted from the source file
 
-void Finish(struct InstrSeq * Code)
-{ 	
+	prepares the interpreted assembly instructions to be run
+	adds all variables and strings stored in the Symbol Tables
+*/
+void Finish(struct InstrSeq * progInstrs) { 	
 	struct InstrSeq * code;
-  	//struct SymEntry *entry;
     int hasMore;
 	char *name;
   	struct Attribute * attr;
 
-
-  	code = GenInstr(NULL,".text",NULL,NULL,NULL);
-  	//AppendSeq(code,GenInstr(NULL,".align","2",NULL,NULL));
-  	AppendSeq(code,GenInstr(NULL,".globl","main",NULL,NULL));
-  	AppendSeq(code, GenInstr("main",NULL,NULL,NULL,NULL));
-  	AppendSeq(code,Code);
-  	AppendSeq(code, GenInstr(NULL, "li", "$v0", "10", NULL)); 
-  	AppendSeq(code, GenInstr(NULL,"syscall",NULL,NULL,NULL));
-  	AppendSeq(code,GenInstr(NULL,".data",NULL,NULL,NULL));
-  	AppendSeq(code,GenInstr(NULL,".align","4",NULL,NULL));
-  	AppendSeq(code,GenInstr("_nl",".asciiz","\"\\n\"",NULL,NULL));
-	AppendSeq(code,GenInstr("_true",".asciiz","\"true\"",NULL,NULL));
-	AppendSeq(code,GenInstr("_false",".asciiz","\"false\"",NULL,NULL));
-	AppendSeq(code,GenInstr("_space",".asciiz","\" \"",NULL,NULL));
+  	code = prepInstructions(progInstrs); 
 
 	hasMore = startIterator(stringTable);
-	while(hasMore) {
+	while (hasMore) {
 		name = getCurrentName(stringTable);
 		AppendSeq(code, GenInstr(name, ".asciiz", (char*) getCurrentAttr(stringTable), NULL, NULL));
 		hasMore = nextEntry(stringTable);
@@ -823,7 +817,7 @@ void Finish(struct InstrSeq * Code)
  	hasMore = startIterator(table);
  	while (hasMore) {
 		attr = (struct Attribute*) getCurrentAttr(table);
-		if(!attr->array) {
+		if (!attr->array) {
 			AppendSeq(code, GenInstr(getCurrentName(table), ".word", "0", NULL, NULL));
 		} 
     	hasMore = nextEntry(table);
@@ -832,13 +826,12 @@ void Finish(struct InstrSeq * Code)
 	hasMore = startIterator(table);
  	while (hasMore) {
 		attr = (struct Attribute*) getCurrentAttr(table);
-		if(attr->array) {
+		if (attr->array) {
 			AppendSeq(code, GenInstr(getCurrentName(table), ".space", Imm(attr->size), NULL, NULL));
 		} 
     	hasMore = nextEntry(table);
  	}
 
   	WriteSeq(code);
-  
   	return;
 }
