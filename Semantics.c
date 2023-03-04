@@ -350,13 +350,10 @@ struct ExprRes * GAR(struct ExprRes * Res1, struct ExprRes * Res2, char * OpCode
 	return Res1;
 }
 
-
-/* 
-	@Res1 -> left value of modulo
-	@Res2 -> right value of modulo
-
-	returns ExprRes struct containing instructions for modulo @Res1 % @Res2
-*/
+//	#Res1 -> left value of modulo
+//	#Res2 -> right value of modulo
+//
+//	returns ExprRes struct containing instructions for #Res1 % #Res2
 struct ExprRes * doMod(struct ExprRes * Res1, struct ExprRes * Res2) {
 	int reg = AvailTmpReg();
 
@@ -371,13 +368,11 @@ struct ExprRes * doMod(struct ExprRes * Res1, struct ExprRes * Res2) {
 	return Res1;
 }
 
-/* 
-	@Res1 -> base value
-	@Res2 -> exponential value
-
-	exponentiation is right associative
-	returns ExprRes struct containing instructions for exponentiation @Res1 ^ @Res2
-*/
+//  #Res1 -> value of the base
+// 	#Res2 -> value of the exponent
+//
+// 	exponentiation is right associative
+// 	returns ExprRes struct containing instructions for #Res1 ^ #Res2
 struct ExprRes * doExp(struct ExprRes * Res1, struct ExprRes * Res2) {
 	int reg = AvailTmpReg();
 	int index = AvailTmpReg();
