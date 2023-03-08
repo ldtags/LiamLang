@@ -20,7 +20,7 @@ while                                                                 {return WH
 int					                                                          {return Int;}
 bool                                                                  {return Bool;}
 print                                                                 {return Print;}
-printe   					                                                    {return Write;}
+println                                                               {return Println;}
 printlines                                                            {return WriteLines;}
 printspaces                                                           {return WriteSpaces;}
 printstring                                                           {return WriteString;}       
@@ -29,7 +29,7 @@ true                                                                  {return TR
 false                                                                 {return FALSE;}
 {letter}({letter}|{digit})*	                                          {return Ident;}
 {digit}{digit}*		                                                    {return IntLit;}
-\"(.|\n)*\"                                                           {return StringLit;}
+\".*\"                                                                {return StringLit;}
 \=\=					                                                        {return EQ;}
 \!\=                                                                  {return NEQ;}
 \|\|                                                                  {return OR;}
