@@ -526,7 +526,7 @@ struct InstrSeq * doIOPrint(struct ExprList * list) {
 
 struct InstrSeq * doPrintln(struct ExprList * list) { 
   	struct InstrSeq * instr = doIOPrint(list);
-	AppendSeq(instr, GenInstr(NULL, "la", "$a0", "_space", NULL));
+	AppendSeq(instr, GenInstr(NULL, "la", "$a0", "_nl", NULL));
 	AppendSeq(instr, GenInstr(NULL, "li", "$v0", Imm(4), NULL));
 	AppendSeq(instr, GenInstr(NULL, "syscall", NULL, NULL, NULL));
   	return instr;
