@@ -6,8 +6,6 @@ extern int yyparse();
 
 SymTab *table;
 SymTab *printstrings;
-//SymTab *ProcSymTab;
-//int inProc =0;
 FILE *aFile;
 
 int main(int argc, char * argv[]) {

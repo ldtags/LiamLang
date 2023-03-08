@@ -1,5 +1,4 @@
 %{
-//#include "yaccExample.h"
 #include "IOMngr.h"
 #include "y.tab.h"
 
@@ -57,9 +56,9 @@ false                                                                 {return FA
 \]                                                                    {return ']';}
 \,                                                                    {return ',';}
 
-\/\/.*\n                                                              {}
+\-\-.*\n                                                              {}
 \/\*(.|\n)*\*\/                                                       {}
-[ ]				                                                            {}
+[ ]   		                                                            {}
 \t				                                                            {}
 \r				                                                            {}
 \n				                                                            {}
