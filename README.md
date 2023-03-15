@@ -16,6 +16,13 @@ Requirements:
 
 
 
+Interpreting a Source File:
+  - ./comp {path to source file} lsting.lst asmCode.asm
+    - the listing file and assembly file don't have to already exist
+    - lsting.lst and asmCode.asm can be changed to valid paths for the files
+
+
+
 Specs:
   - All variables must be declared at the beginning of your script
   - The end of a line of code is denoted by a semi-colon ';' char
