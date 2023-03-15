@@ -4,7 +4,7 @@ Welcome to Liam Lang! The barebones interpreter I built over the course of a mon
 
 Test files for the language are given in the *examples* folder.
 
-This interpreter uses Lex to perform lexical analysis on the source file, and Yacc to parse the returned token stream
+This interpreter uses Lex to perform lexical analysis on the source file, and Yacc to parse the returned token stream.
 
 
 Requirements:
