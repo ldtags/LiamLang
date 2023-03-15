@@ -4,6 +4,16 @@ Welcome to Liam Lang! The barebones interpreter I built over the course of a mon
 
 Test files for the language are given in the *examples* folder.
 
+This interpreter uses Lex to perform lexical analysis on the source file, and Yacc to parse the returned token stream
+
+
+Requirements:
+  - Linux OS
+  - A C compiler (gcc, clang, etc.)
+  - An installation of Yacc (preferably Bison 3.8.1)
+  - An installation of Lex
+  - A Java SDK and a mars jar file (only required if you wish to run the assembly generated)
+
 
 
 Specs:
@@ -12,10 +22,10 @@ Specs:
   - Only *while* loops are supported
 
 
-
 Data Types:
   - int: 32-bit integer
   - bool: has literals *true* and *false*
+  - string: can only be used in the *printstring* method, denoted as "string"
 
 
 
@@ -37,6 +47,16 @@ Operators {precedence}:
   - bool != bool: inequality                                 {7}
   - bool && bool: boolean and                                {8}
   - bool || bool: boolean or                                 {9}
+
+
+
+Statements:
+  - All methods listed in I/O
+  - id++;
+  - id = expression;
+  - if (bool) { statementSequence; }
+  - if (bool) { statementSequence; } else { statementSequence; }
+  - while (bool) { statementSequence; }
 
 
 
