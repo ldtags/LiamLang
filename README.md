@@ -12,7 +12,7 @@ Requirements:
   - A C compiler (gcc, clang, etc.)
   - An installation of Yacc (preferably Bison 3.8.1)
   - An installation of Lex
-  - A Java SDK and a mars jar file (only required if you wish to run the assembly generated)
+  - A Java SDK and a mars.jar file (only required if you wish to run the assembly generated)
 
 
 
