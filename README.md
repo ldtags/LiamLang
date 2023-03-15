@@ -12,6 +12,10 @@ Data Types:
   - int: 32-bit integer
   - bool: has literals *true* and *false*
   
+Operators {precedence}:
+  - \[]: array access {1}
+  - !bool: not {2}
+  - -expr: unary minus {2}
   
 Methods:
   - print( expression )
@@ -19,9 +23,17 @@ Methods:
   
   - println( expression )
     - functionally the same as *print( expression )*, but prints a newline character following the expression
-    
-  - printlines( int )
-    - prints the amount of newline chars specified by *lines*
-    
+
   - printstring( string )
     - prints the string parameter to the console
+    
+  - printlines( int )
+    - prints the amount of newline chars specified by the int parameter
+    
+  - printspaces( int )
+    - prints the amount of white-space chars specified by the int parameter
+
+  - read( idList )
+    - reads user input from the console
+    - idList can be a single variable or a comma-delimitted list of variables
+    - user input is loaded into the variables in the order they are given
