@@ -6,7 +6,7 @@ Test files for the language are given in the *examples* folder.
 
 Specs:
   - All variables must be declared at the beginning of your script
-  - The end of a line of code is denoted by a ; char
+  - The end of a line of code is denoted by a semi-colon ';' char
   
 Data Types:
   - int: 32-bit integer
