@@ -13,9 +13,18 @@ Data Types:
   - bool: has literals *true* and *false*
   
 Operators {precedence}:
-  - \[]: array access {1}
-  - !bool: not {2}
-  - -expr: unary minus {2}
+  - \[]: array access                                       {1}
+  - !bool: not                                              {2}
+  - -expr: unary minus                                      {2}
+  - expr ^ expr: right-associative exponentiation           {3}
+  - expr * expr: left-associative multiplication            {4}
+  - expr / expr: left-associative integer division          {4}
+  - expr % expr: left-associative modulo                    {4}
+  - expr + expr: left-associative addition                  {5}
+  - expr - expr: left-associative subtraction               {5}
+  - bool >= bool: left-associative greater than or equal to {6}
+  - bool > bool: left-associative greater than              {6}
+  - bool <= bool: left-associative less than or equal to    {6}
   
 Methods:
   - print( expression )
