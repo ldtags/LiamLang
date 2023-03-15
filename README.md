@@ -14,14 +14,14 @@ Data Types:
   
   
 Methods:
-  print( expression )
+  - print( expression )
     - prints the expression parameter to the console
   
-  println( expression )
+  - println( expression )
     - functionally the same as *print( expression )*, but prints a newline character following the expression
     
-  printlines( int )
+  - printlines( int )
     - prints the amount of newline chars specified by *lines*
     
-  printstring( string )
+  - printstring( string )
     - prints the string parameter to the console
