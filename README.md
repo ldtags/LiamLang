@@ -16,7 +16,7 @@ Data Types:
 Methods:
   - print( expression )
     - prints the expression parameter to the console
-  
+  \n
   - println( expression )
     - functionally the same as *print( expression )*, but prints a newline character following the expression
     
