@@ -1,6 +1,6 @@
 # LiamLang
 
-Welcome to Liam Lang! The barebones interpreter I built over the course of a month.
+Welcome to Liam Lang! The barebones compiler that I built over the course of a month.
 
 Test files for the language are given in the *examples* folder.
 
